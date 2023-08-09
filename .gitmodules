@@ -1,0 +1,3 @@
+[submodule "nilmtk"]
+	path = nilmtk
+	url = https://github.com/nilmtk/nilmtk.git
