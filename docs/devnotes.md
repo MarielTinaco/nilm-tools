@@ -7,3 +7,4 @@ Workflow initial plan
 Version 0.0
 - NILMTK submodule
 - Generic Python .gitignore
+- Sample notebook for using NILMTK data structure
