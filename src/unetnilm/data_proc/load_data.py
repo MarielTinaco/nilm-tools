@@ -89,7 +89,7 @@ def pre_proc_ukdale(src_dir, window):
     power_elec = dataset.buildings[1].elec
     
     for app in list(ukdale_appliance_data.keys()):
-        power = [i for i in power_elec[app].power_series()]
+        power = [i for i in power_elec[app].power_series_all_data()]
         meter = quantile_filter(ukdale_appliance_data[app]['window'], power, p=50)
         state = binarization(meter,ukdale_appliance_data[app]['on_power_threshold'])
         meter = (meter - ukdale_appliance_data[app]['mean'])/ukdale_appliance_data[app]['std']
