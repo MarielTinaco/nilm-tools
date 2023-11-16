@@ -1,9 +1,9 @@
 import sys
 import pandas as pd
 import numpy as np
-import nilmtk
+import nilmtk   
 
-sys.path.append('../')
+sys.path.append('../../')
 from src.utils import paths_manager as pathsman
 
 data_type = ("training")
@@ -88,28 +88,49 @@ def pre_proc_ukdale(src_dir, window):
     dataset.set_window(*window)
     power_elec = dataset.buildings[1].elec
     
+    washer_dryer_power = power_elec["washer dryer"].power_series_all_data()
+    kettle_power = power_elec["kettle"].power_series_all_data()
+    fridge_power = power_elec["fridge"].power_series_all_data() 
+    dish_washer_power = power_elec["dish washer"].power_series_all_data() 
+    microwave_power = power_elec["microwave"].power_series_all_data()
+
+    reference = (len(washer_dryer_power), len(kettle_power), len(fridge_power), len(dish_washer_power), len(microwave_power))
+    reference = np.max(reference)
+
     for app in list(ukdale_appliance_data.keys()):
-        power = [i for i in power_elec[app].power_series_all_data()]
-        meter = quantile_filter(ukdale_appliance_data[app]['window'], power, p=50)
+        
+        app_power = np.pad(power_elec[app].power_series_all_data(), (0, reference-len(power_elec[app].power_series_all_data())), 'constant')
+
+        # power = [i for i in power_elec[app].power_series_all_data()]
+        # power = power_elec[app].power_series_all_data()
+        meter = quantile_filter(ukdale_appliance_data[app]['window'], app_power, p=50)
         state = binarization(meter,ukdale_appliance_data[app]['on_power_threshold'])
         meter = (meter - ukdale_appliance_data[app]['mean'])/ukdale_appliance_data[app]['std']
         targets.append(meter)
         states.append(state)
-        
+
     mains_denoise = dataset.buildings[1].elec.mains().power_series_all_data()
-    print (mains_denoise)
+    print("Before Filter", len(mains_denoise))
     mains_denoise = quantile_filter(10, mains_denoise, 50)
 
     mains = dataset.buildings[1].elec.mains().power_series_all_data().values-np.percentile(dataset.buildings[1].elec.mains().power_series_all_data().values, 1)
     mains = np.where(mains <mains_denoise, mains_denoise, mains)
     mains = quantile_filter(10, mains, 50)
     mains_denoise = (mains_denoise - 123)/369
-    mains = (mains - 389)/445
+    mains = (mains-389)/445
+    
+    states = np.stack(states).T    
+    targets = np.stack(targets).T
 
-    states = np.hstack(states).T
-    targets = np.hstack(targets).T
+    mains = np.resize(mains, len(states))
+    mains_denoise = np.resize(mains_denoise, len(states))
 
-    del power, meter, state
+    print("States Shape = ", np.shape(states))
+    print("Targets Shape = ", np.shape(targets))
+    print("Mains Shape = ", np.shape(mains))
+    print("Mains Denoise Shape = ", np.shape(mains_denoise))
+
+    del meter, state
     np.save(save_path+f"/ukdale/{data_type}/denoise_inputs.npy", mains_denoise)
     np.save(save_path+f"/ukdale/{data_type}/noise_inputs.npy", mains)
     np.save(save_path+f"/ukdale/{data_type}/targets.npy", targets)
