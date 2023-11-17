@@ -8,10 +8,12 @@ import torch.nn.functional as F
 from argparse import ArgumentParser
 from .modules import CNN1DModel,  UNETNiLM
 from net.metrics import  compute_metrics, compute_regress_metrics, get_results_summary
-from data.load_data import ukdale_appliance_data 
-from data.data_loader import Dataset, load_data, spilit_refit_test
+from data_proc.load_data import ukdale_appliance_data 
+from data_proc.data_loader import Dataset, load_data, spilit_refit_test
 from .utils import ObjectDict, QuantileLoss
-from pytorch_lightning.metrics.functional import f1_score
+# from pytorch_lightning.metrics.functional import f1_score
+from torchmetrics.functional import f1_score
+
 
 
 class NILMnet(pl.LightningModule):
@@ -64,7 +66,8 @@ class NILMnet(pl.LightningModule):
             
         loss = loss_nll + loss_mse
         
-        res = f1_score(pred, z)
+        # res = f1_score(pred, z)
+        res = f1_score(pred, z, task="multiclass", num_classes=5)
         logs = {"nlloss":loss_nll, "mseloss":loss_mse,
                  "mae":mae_score, "F1": res}
         return loss, logs
@@ -201,11 +204,11 @@ class NILMnet(pl.LightningModule):
                                                     data_type="test" if self.hparams.data=="refit" else "training", 
                                                     sample=self.hparams.sample,
                                                      data=self.hparams.data,
-                                                    denoise=self.hparams.denoise) 
+                                                    denoise=self.hparams.denoise)       
             x_train, x_val, x_test = spilit_refit_test(x)
             if self.hparams.benchmark=="single-appliance":
                 y_train, y_val, y_test = spilit_refit_test(y[:,self.hparams.appliance_id][:,None])
-                #print(y_train.shape)
+                # print(y_train.shape)
                 z_train, z_val, z_test = spilit_refit_test(z[:,self.hparams.appliance_id][:,None])
             else:       
                 y_train, y_val, y_test = spilit_refit_test(y)
