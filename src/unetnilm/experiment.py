@@ -5,7 +5,7 @@ import os
 import torch
 import numpy as np
 from net.model_pl import NILMnet
-from data.load_data import ukdale_appliance_data
+from data_proc.load_data import ukdale_appliance_data
 from net.utils import DictLogger
 from pathlib import Path
 import pytorch_lightning as pl
@@ -17,7 +17,6 @@ import sys
 from argparse import ArgumentParser
 set_seed(seed=7777)
 device =  get_device()
-
 
 class NILMExperiment(object):
 
@@ -45,21 +44,21 @@ class NILMExperiment(object):
         logs.mkdir(parents=True, exist_ok=True)
         results.mkdir(parents=True, exist_ok=True)
         
-     
 
     def fit(self):
         file_name = self.params['file_name']
         self.arch = file_name
-        checkpoint_callback = pl.callbacks.ModelCheckpoint(filepath=self.checkpoint_path, monitor='val_F1', mode="max", save_top_k=1)
+        checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath=self.checkpoint_path, monitor='val_F1', mode="max", save_top_k=1)
         early_stopping = pl.callbacks.EarlyStopping(monitor='val_F1', min_delta=1e-4, patience=20, mode="max")
         logger = DictLogger(self.logs_path, name=file_name, version=self.params['exp_name'])
         trainer = pl.Trainer(
                     logger = logger,
                     gradient_clip_val=self.params['clip_value'],
-                    checkpoint_callback=checkpoint_callback,
+                    # checkpoint_callback=checkpoint_callback,
+                    callbacks=[checkpoint_callback, early_stopping],
                     max_epochs=self.params['n_epochs'],
                     gpus=-1 if torch.cuda.is_available() else None,
-                    #early_stop_callback=early_stopping,
+                    # callbacks=early_stopping,
                     resume_from_checkpoint=get_latest_checkpoint(self.checkpoint_path)
                      )
         
@@ -78,14 +77,6 @@ class NILMExperiment(object):
         results_path = f"{self.results_path}{file_name}"
         return results[0], results_path
         
-        
-    
-   
-           
-            
-    
-
-
 def run_experiments(model_name="CNN1D", denoise=True,
                      batch_size = 128, epochs = 50,
                     sequence_length =99, sample = None, 
@@ -112,7 +103,7 @@ def run_experiments(model_name="CNN1D", denoise=True,
                 'appliance_id':appliance_id,
                 'appliances':appliances,
                 'out_size':len(appliances),
-                'data_path':"../data/",
+                'data_path':"data",
                 'data':data,
                 'quantiles':quantiles,
                 "denoise":denoise,
@@ -145,6 +136,3 @@ if __name__ == "__main__":
                                 sample=sample, epochs=epochs, appliances=list(ukdale_appliance_data.keys()),
                                 appliance_id=None, benchmark="mutli-appliance")  
             np.save(save_path+"results.npy", results)                        
-            
-    
-    
