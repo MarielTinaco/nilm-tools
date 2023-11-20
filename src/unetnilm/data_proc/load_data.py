@@ -136,11 +136,6 @@ def pre_proc_ukdale(data_type, window):
     mains = np.resize(mains, len(states))
     mains_denoise = np.resize(mains_denoise, len(states))
 
-    print("States Shape = ", np.shape(states))
-    print("Targets Shape = ", np.shape(targets))
-    print("Mains Shape = ", np.shape(new_mains))
-    print("Mains Denoise Shape = ", np.shape(mains_denoise))
-
     save_path = pathsman.SRC_DIR / f"unetnilm/data/ukdale/{data_type}"
                                     
     del meter, state
