@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import numpy as np
+from pathlib import Path
 import nilmtk   
 import matplotlib.pyplot as plt
 from skimage.measure import block_reduce
@@ -83,7 +84,7 @@ ukdale_appliance_data = {
     },
 }
 
-def pre_proc_ukdale(src_dir, window, data_type):
+def pre_proc_ukdale(data_type, window):
     targets = []
     states = [] 
     dataset = nilmtk.DataSet(pathsman.UKDALE_H5_PATH)
@@ -92,7 +93,7 @@ def pre_proc_ukdale(src_dir, window, data_type):
     
     washer_dryer_power = power_elec["washer dryer"].power_series_all_data()
     kettle_power = power_elec["kettle"].power_series_all_data()
-    fridge_power = power_elec["fridge"].power_series_all_data() 
+    fridge_power = power_elec["fridge"].power_series_all_data()
     dish_washer_power = power_elec["dish washer"].power_series_all_data() 
     microwave_power = power_elec["microwave"].power_series_all_data()
 
@@ -140,14 +141,22 @@ def pre_proc_ukdale(src_dir, window, data_type):
     print("Mains Shape = ", np.shape(new_mains))
     print("Mains Denoise Shape = ", np.shape(mains_denoise))
 
+    save_path = pathsman.SRC_DIR / f"unetnilm/data/ukdale/{data_type}"
+                                    
     del meter, state
-    np.save(save_path+f"/ukdale/{data_type}/denoise_inputs.npy", mains_denoise)
-    np.save(save_path+f"/ukdale/{data_type}/noise_inputs.npy", mains)
-    np.save(save_path+f"/ukdale/{data_type}/targets.npy", targets)
-    np.save(save_path+f"/ukdale/{data_type}/states.npy", states)  
+    np.save(str(save_path) + "/denoise_inputs.npy", mains_denoise)
+    np.save(str(save_path) + "/noise_inputs.npy", mains)
+    np.save(str(save_path) + "/targets.npy", targets)
+    np.save(str(save_path) + "/states.npy", states)  
 
 if __name__ == "__main__":
-    for data_type in ["test", "validation", "training"]:
-        print(f"PREPROCESS DATA FOR {data_type}")
-        pre_proc_ukdale(data_type)
+    params = [
+        ("test", ("2015-06-01", "2015-06-06")),
+        ("validation", ("2014-06-01", "2014-06-06")),
+        ("training", ("2014-06-01", "2016-06-01"))
+    ]
+
+    for data_type in params:
+        print(f"PREPROCESS DATA FOR {data_type[0]}, TIME WINDOW OF {data_type[1]}")
+        pre_proc_ukdale(data_type, window=data_type[1])
     
