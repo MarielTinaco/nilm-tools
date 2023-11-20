@@ -103,9 +103,9 @@ class NILMnet(pl.LightningModule):
         if len(self.hparams.quantiles)>1:
             prob=prob.unsqueeze(1).expand_as(pred_power)
             
-        else: 
+        # else: 
             
-          logs = {"pred_power":pred_power, "pred_state":pred_state, "power":y, "state":z}
+        logs = {"pred_power":pred_power, "pred_state":pred_state, "power":y, "state":z}
         return logs
     
     def test_epoch_end(self, outputs):

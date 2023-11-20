@@ -22,6 +22,7 @@ class UNetCNN1D(nn.Module):
    
     def __init__(
             self, 
+            num_classes: int = 5,
             num_layers: int = 5,
             features_start: int = 8,
             n_channels: int =1
