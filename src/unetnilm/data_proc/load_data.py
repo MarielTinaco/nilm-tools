@@ -2,11 +2,13 @@ import sys
 import pandas as pd
 import numpy as np
 import nilmtk   
+import matplotlib.pyplot as plt
+from skimage.measure import block_reduce
 
 sys.path.append('../../')
 from src.utils import paths_manager as pathsman
 
-data_type = ("training")
+# data_type = ("training")
 save_path = ('data')
 
 def binarization(data,threshold):
@@ -81,7 +83,7 @@ ukdale_appliance_data = {
     },
 }
 
-def pre_proc_ukdale(src_dir, window):
+def pre_proc_ukdale(src_dir, window, data_type):
     targets = []
     states = [] 
     dataset = nilmtk.DataSet(pathsman.UKDALE_H5_PATH)
@@ -122,12 +124,20 @@ def pre_proc_ukdale(src_dir, window):
     states = np.stack(states).T    
     targets = np.stack(targets).T
 
+    ###
+    # mains = int (len(mains)/len(targets))
+    # print("Len of Mains Before Downsampling: ", len(mains))
+    # print("Mains shape: ", np.shape(mains))
+    # mains = block_reduce(mains, block_size=(mains), func=np.mean)
+    # print("Len of Mains After Downsampling: ", len(mains))
+    ###
+
     mains = np.resize(mains, len(states))
     mains_denoise = np.resize(mains_denoise, len(states))
 
     print("States Shape = ", np.shape(states))
     print("Targets Shape = ", np.shape(targets))
-    print("Mains Shape = ", np.shape(mains))
+    print("Mains Shape = ", np.shape(new_mains))
     print("Mains Denoise Shape = ", np.shape(mains_denoise))
 
     del meter, state
