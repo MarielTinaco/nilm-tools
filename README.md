@@ -24,3 +24,43 @@ NILMTK is a large collection of tools and utilities for Load disaggregation. It 
     ```
     python -m scripts.generate_data
     ```
+
+## 2. Model training on UNETNILM
+
+UNETNILM is an open-source project which uses the UNet CNN architecture which is typically used for image/audio segmentation tasks, in Load disaggregation. The early version for pytorch-lightning used in the example repository for UNETNiLM is found on pip. It has only been tested on python 3.8. 
+
+### Setup
+1. Install [Python 3.8.10](https://www.python.org/downloads/release/python-3810/) and Setup your virtual environment:
+    > If the default global interpreter is already python 3.8:
+    ```
+    python -m venv venv --prompt nilmenv
+    ```
+    > If not, do it manually
+    ```
+    C:/path/to/python/installation/directory/python.exe -m venv venv --prompt nilmenv
+    ```
+    > You may already use any of your preferred package handler in Python
+
+2. Activate environment
+    ```
+    C:\(path)\(to)\(directory)\cos-algo-nilm>venv\Scripts\activate
+    ```
+3. Install dependencies
+    - Without CUDA:
+    ```
+    pip install -r requirements.txt
+    ```
+    - With CUDA:
+    ```
+    pip install -r requirements-cu118.txt
+    ```
+
+4. Change into src/unetnilm directory
+    ```
+    cd src\unetnilm
+    ```
+
+5. Run experiment.py
+    ```
+    python experiment.py
+    ```
