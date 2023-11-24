@@ -1,35 +1,26 @@
-NILM
+# Multi-environment setup for Data preprocessing and Model training
 
-Install at least Python 3.9 setup
+To reconcile conflicts in python toolings for Load disaggregation, a multi-environment setup is employed as a temporary solution. This means that you must switch between two Python environments (Anaconda and Pip) to conduct different stages of load disaggregations
 
-Custom building NILMTK for Windows
-- Update nilmtk and nilm_metadata submodules
-```
-git submodule update --init --recursive
-```
-- Inside nilmtk, inside setup.py, for contents of variable "install_requires", change packages requirements with strict versioning to minimum version. .i.e. change == to >=. These strict package versioning are required for conda environments.
-```
-    install_requires=[
-        "pandas>=0.25.3",
-        "numpy >= 1.13.3",
-        "networkx>=2.1",
-        "scipy",
-        "tables",
-        "scikit-learn>=0.21.2",
-        "hmmlearn>=0.2.1",
-        "pyyaml",
-        "matplotlib>=3.1.3",
-        "jupyterlab"
-    ],
-```
-- Change into nilm_metadata and run setup to install nilm_metadata first
-```
-cd nilm_metadata
-python setup.py develop
-```
-- Then change into nilmtk and run setup to install nilmtk (Assuming current working directory is nilm_metadata)
-```
-cd ..
-cd nilmtk
-python setup.py develop
-```
+## 1. Data preprocessing on NILMTK using Anaconda environment
+
+NILMTK is a large collection of tools and utilities for Load disaggregation. It is only stable and well-supported on Anaconda
+
+### Setup
+1. Setup and install [Anaconda](https://www.anaconda.com/download) or [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/) environment.
+2. Create Anaconda virtual environment using yml file (The name of the environment is found on line 1 of .yml file)
+    ```
+    conda env create -f environment.yml
+    ```
+3. Activate virtual environment
+    ```
+    conda activate <name of environment>
+    ```
+4. Make sure you are in the root directory
+    ```
+    (nilmtk-env) C:\(path)\(to)\(directory)\cos-algo-nilm> 
+    ```
+5. Run Data extractor script
+    ```
+    python -m scripts.generate_data
+    ```
