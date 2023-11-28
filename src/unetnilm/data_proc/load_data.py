@@ -8,7 +8,7 @@ from skimage.measure import block_reduce
 
 sys.path.append('../../')
 from src.utils import paths_manager as pathsman
-from utils.mappings import ukdale_appliance_data
+from src.unetnilm.utils.mappings import ukdale_appliance_data
 
 
 # data_type = ("training")
