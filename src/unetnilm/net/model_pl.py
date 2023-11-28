@@ -8,13 +8,12 @@ import torch.nn.functional as F
 from argparse import ArgumentParser
 from .modules import CNN1DModel,  UNETNiLM
 from net.metrics import  compute_metrics, compute_regress_metrics, get_results_summary
-from data_proc.load_data import ukdale_appliance_data 
 from data_proc.data_loader import Dataset, load_data, spilit_refit_test
 from .utils import ObjectDict, QuantileLoss
 # from pytorch_lightning.metrics.functional import f1_score
 from torchmetrics.functional import f1_score
 
-
+from utils.mappings import ukdale_appliance_data
 
 class NILMnet(pl.LightningModule):
     def __init__(self, hparams):

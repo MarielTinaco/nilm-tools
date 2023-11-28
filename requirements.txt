@@ -1,0 +1,6 @@
+pytorch-lightning==1.0.4
+torch
+pandas
+scikit-learn
+scikit-image
+ipykernel
