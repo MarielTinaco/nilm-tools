@@ -1,3 +1,14 @@
+# Downloading UKDALE Dataset in H5 format
+
+Create a folder named data from root and copy the UKDALE.h5 file into C:/(path)/(to)/(repo)/data/ukdale/UKDALE.h5
+
+[UKDALE Disaggregated 2015](https://data.ukedc.rl.ac.uk/browse/edc/efficiency/residential/EnergyConsumption/Domestic/UK-DALE-2015/UK-DALE-disaggregated/ukdale.h5.tgz)
+
+[UKDALE Disaggregated 2017](https://data.ukedc.rl.ac.uk/browse/edc/efficiency/residential/EnergyConsumption/Domestic/UK-DALE-2017/UK-DALE-FULL-disaggregated/ukdale.h5.zip)
+
+[UKDALE Main data source](https://data.ukedc.rl.ac.uk/browse/edc/efficiency/residential/EnergyConsumption/Domestic)
+
+
 # Multi-environment setup for Data preprocessing and Model training
 
 To reconcile conflicts in python toolings for Load disaggregation, a multi-environment setup is employed as a temporary solution. This means that you must switch between two Python environments (Anaconda and Pip) to conduct different stages of load disaggregations
