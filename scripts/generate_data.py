@@ -11,9 +11,9 @@ from src.unetnilm.data_proc.load_data import pre_proc_ukdale, pre_proc_ukdale_ni
 #         pre_proc_ukdale(data_type[0], window=data_type[1])
 
 params = [
-        ("training", {"start": "2014-05-25", "end": "2014-05-30"}),
-        ("test", {"start": "2014-06-01", "end": "2014-06-05"}),
-        ("validation", {"start": "2014-08-30", "end": "2014-09-05"})
+        ("training", {"start": "2014-05-25", "end": "2015-05-30"}),
+        ("test", {"start": "2015-06-01", "end": "2015-09-05"}),
+        ("validation", {"start": "2014-02-30", "end": "2014-05-20"})
 ]
 
 for param in params:
