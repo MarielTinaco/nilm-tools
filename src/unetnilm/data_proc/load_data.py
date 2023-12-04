@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import numpy as np
+from typing import Union, Tuple, Dict
 from pathlib import Path
 import nilmtk   
 import matplotlib.pyplot as plt
@@ -74,7 +75,7 @@ def pre_proc_ukdale(data_type, window):
         # power = [i for i in power_elec[app].power_series_all_data()]
         # power = power_elec[app].power_series_all_data()
         meter = quantile_filter(ukdale_appliance_data[app]['window'], app_power, p=50)
-        state = binarization(meter,ukdale_appliance_data[app]['on_power_threshold'])
+        state = binarization(meter,power_elec[app].on_power_threshold())
         meter = (meter - ukdale_appliance_data[app]['mean'])/ukdale_appliance_data[app]['std']
         targets.append(meter)
         states.append(state)
@@ -86,8 +87,8 @@ def pre_proc_ukdale(data_type, window):
     mains = dataset.buildings[1].elec.mains().power_series_all_data().values-np.percentile(dataset.buildings[1].elec.mains().power_series_all_data().values, 1)
     mains = np.where(mains <mains_denoise, mains_denoise, mains)
     mains = quantile_filter(10, mains, 50)
-    mains_denoise = (mains_denoise - 123)/369
-    mains = (mains-389)/445
+    mains_denoise = (mains_denoise - mains_denoise.mean())/mains_denoise.std()
+    mains = (mains-mains.mean())/mains.std()
     
     states = np.stack(states).T    
     targets = np.stack(targets).T
@@ -109,16 +110,90 @@ def pre_proc_ukdale(data_type, window):
     np.save(str(save_path) + "/denoise_inputs.npy", mains_denoise)
     np.save(str(save_path) + "/noise_inputs.npy", mains)
     np.save(str(save_path) + "/targets.npy", targets)
-    np.save(str(save_path) + "/states.npy", states)  
+    np.save(str(save_path) + "/states.npy", states)
 
-if __name__ == "__main__":
-    params = [
-        ("test", ("2015-06-01", "2015-06-06")),
-        ("validation", ("2014-06-01", "2014-06-06")),
-        ("training", ("2014-06-01", "2016-06-01"))
-    ]
-
-    for data_type in params:
-        print(f"PREPROCESS DATA FOR {data_type[0]}, TIME WINDOW OF {data_type[1]}")
-        pre_proc_ukdale(data_type, window=data_type[1])
+def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building : int = 1):
+    targets = []
+    states = [] 
+    dataset = nilmtk.DataSet(pathsman.UKDALE_H5_PATH)
     
+    appliance = {
+        "fridge" : {
+            "window" : 50,
+            "mean" : dataset.buildings[building].elec["fridge"].power_series_all_data().mean(),
+            "std" : dataset.buildings[building].elec["fridge"].power_series_all_data().std(),
+        },
+        "boiler" : {
+            "window" : 50,
+            "mean" : dataset.buildings[building].elec["boiler"].power_series_all_data().mean(),
+            "std" : dataset.buildings[building].elec["boiler"].power_series_all_data().std()
+        },
+        "washer dryer" : {
+            "window" : 50,
+            "mean" : dataset.buildings[building].elec["washer dryer"].power_series_all_data().mean(),
+            "std" : dataset.buildings[building].elec["washer dryer"].power_series_all_data().std()
+        },
+        "HTPC" : {
+            "window" : 50,
+            "mean" : dataset.buildings[building].elec["HTPC"].power_series_all_data().mean(),
+            "std" : dataset.buildings[building].elec["HTPC"].power_series_all_data().std()
+        },
+        "dish washer" : {
+            "window" : 50,
+            "mean" : dataset.buildings[building].elec["dish washer"].power_series_all_data().mean(),
+            "std" : dataset.buildings[building].elec["dish washer"].power_series_all_data().std()
+        },
+        "microwave" : {
+            "window" : 10,
+            "mean" : dataset.buildings[building].elec["microwave"].power_series_all_data().mean(),
+            "std" : dataset.buildings[building].elec["microwave"].power_series_all_data().std()
+        }
+    }
+
+    mains_mean = dataset.buildings[building].elec.mains().power_series_all_data().mean()
+    mains_std = dataset.buildings[building].elec.mains().power_series_all_data().std()
+
+    if isinstance(timeframe, Tuple):
+        dataset.set_window(*timeframe)
+    elif isinstance(timeframe, dict):
+        dataset.set_window(**timeframe)
+
+    power_elec = dataset.buildings[building].elec
+
+    indices = [power_elec[app].power_series_all_data().index for app in appliance.keys()]
+    sorted_indices = sorted(indices, key=len)
+
+    main_index = sorted_indices[0]
+    reduced_power_series_list = []
+
+    for app in appliance.keys():
+            power_series = power_elec[app].power_series_all_data()
+            reduced_power_series = power_series[power_series.index.get_indexer(main_index, method="nearest")]
+            # reduced_power_series_list.append(reduced_power_series)
+            meter = quantile_filter(appliance[app]["window"], reduced_power_series, p=50)
+            state = binarization(meter, power_elec[app].on_power_threshold())
+            meter = (meter - appliance[app]['mean'])/appliance[app]['std']
+            targets.append(meter)
+            states.append(state)
+
+    mains_series = power_elec.mains().power_series_all_data()
+    reduced_main_power_series = mains_series[mains_series.index.get_indexer(main_index, method="nearest")]
+    mains_denoise = quantile_filter(10, reduced_main_power_series, 50)
+
+    mains = reduced_main_power_series.values-np.percentile(reduced_main_power_series.values, 1)
+    mains = np.where(mains < mains_denoise, mains_denoise, mains)
+    mains = quantile_filter(10, mains, 50)
+    
+    norm_mains_denoise = (mains_denoise - mains_denoise.mean()) / mains_denoise.std()
+    norm_mains = (mains - mains_mean) / mains_std
+
+    states = np.stack(states).T
+    targets = np.stack(targets).T
+
+    save_path = pathsman.SRC_DIR / f"unetnilm/data/ukdale/{data_type}"
+                                    
+    del meter, state
+    np.save(str(save_path) + "/denoise_inputs.npy", norm_mains_denoise)
+    np.save(str(save_path) + "/noise_inputs.npy", norm_mains)
+    np.save(str(save_path) + "/targets.npy", targets)
+    np.save(str(save_path) + "/states.npy", states)
