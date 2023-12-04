@@ -169,6 +169,7 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
     for app in appliance.keys():
             power_series = power_elec[app].power_series_all_data()
             reduced_power_series = power_series[power_series.index.get_indexer(main_index, method="nearest")]
+            reduced_power_series_list.append(reduced_power_series)
             # reduced_power_series_list.append(reduced_power_series)
             meter = quantile_filter(appliance[app]["window"], reduced_power_series, p=50)
             state = binarization(meter, power_elec[app].on_power_threshold())
@@ -176,8 +177,19 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
             targets.append(meter)
             states.append(state)
 
-    mains_series = power_elec.mains().power_series_all_data()
-    reduced_main_power_series = mains_series[mains_series.index.get_indexer(main_index, method="nearest")]
+    # mains_series = power_elec.mains().power_series_all_data()
+    # reduced_main_power_series = mains_series[mains_series.index.get_indexer(main_index, method="nearest")]
+    
+    mains_series = reduced_power_series_list[0]
+    for i in reduced_power_series_list[1:]:
+        mains_series += i.values
+    reduced_main_power_series = mains_series
+
+    tv_power_series = power_elec["television"].power_series_all_data()
+    reduced_tv_power_series = tv_power_series[tv_power_series.index.get_indexer(main_index, method="nearest")]
+
+    reduced_main_power_series = reduced_main_power_series + reduced_tv_power_series.values
+
     mains_denoise = quantile_filter(10, reduced_main_power_series, 50)
 
     mains = reduced_main_power_series.values-np.percentile(reduced_main_power_series.values, 1)
