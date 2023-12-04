@@ -1,6 +1,7 @@
 pytorch-lightning==1.0.4
-https://download.pytorch.org/whl/cu118/torch-2.1.1%2Bcu118-cp38-cp38-win_amd64.whl
+torch
 pandas
 scikit-learn
 scikit-image
 ipykernel
+torchmetrics
