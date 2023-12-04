@@ -25,9 +25,9 @@ class NILMExperiment(object):
         Parameters to be specified for the model
         """
         self.MODEL_NAME = params.get('model_name',"CNNModel")
-        self.logs_path =params.get('log_path',"../logs/")
-        self.checkpoint_path =params.get('checkpoint_path',"../checkpoints/")
-        self.results_path = params.get('results_path',"../results/")
+        self.logs_path =params.get('log_path',"logs/")
+        self.checkpoint_path =params.get('checkpoint_path',"checkpoints/")
+        self.results_path = params.get('results_path',"results/")
         self.chunk_wise_training = params.get('chunk_wise_training',False)
         self.sequence_length = params.get('sequence_length',99)
         self.n_epochs = params.get('n_epochs', 10 )
@@ -84,7 +84,7 @@ def run_experiments(model_name="CNN1D", denoise=True,
                     benchmark="single-appliance",
                     appliance_id = 0,
                     appliances = ["FRZ"],
-                    out_size = 5, quantiles=[0.0025,0.1, 0.5, 0.9, 0.975]):        
+                    out_size = 6, quantiles=[0.0025,0.1, 0.5, 0.9, 0.975]):        
     exp_name = f"{data}_{model_name}_quantiles" if len(quantiles)>1 else "{data}_{model_name}"
     if benchmark=="single-appliance":
         file_name = f"{exp_name}_single-appliance_{appliances[0]}"
@@ -108,7 +108,7 @@ def run_experiments(model_name="CNN1D", denoise=True,
                 'quantiles':quantiles,
                 "denoise":denoise,
                 'file_name':file_name,
-                "checkpoint_path" :f"../checkpoints/{file_name}/"
+                "checkpoint_path" :f"checkpoints/{file_name}/"
                 }
     exp = NILMExperiment(params)
     results, results_path=exp.fit()
@@ -117,22 +117,43 @@ def run_experiments(model_name="CNN1D", denoise=True,
 
 if __name__ == "__main__": 
     sample=None
-    epochs=50
+    epochs=20
+            
+    appliance = {
+        "fridge" : {
+            "window" : 50,
+        },
+        "boiler" : {
+            "window" : 50,
+        },
+        "washer dryer" : {
+            "window" : 50,
+        },
+        "HTPC" : {
+            "window" : 50,
+        },
+        "dish washer" : {
+            "window" : 50,
+        },
+        "microwave" : {
+            "window" : 10,
+        }
+    }
+
+    for data in ["ukdale"]:
+        for model_name in ["UNETNiLM", "CNN1D"]:
+            results = {}
+            results, save_path=run_experiments(model_name=model_name, data = data, 
+                                sample=sample, epochs=epochs, appliances=list(appliance.keys()),
+                                appliance_id=None, benchmark="multi-appliance")  
+            np.save(save_path+"results.npy", results)                        
+    
     for data in ["ukdale"]:
         for model_name in ["CNN1D", "UNETNiLM"]:
             results = {}
-            for idx, app in enumerate(list(ukdale_appliance_data.keys())):
+            for idx, app in enumerate(list(appliance.keys())):
                 result, save_path=run_experiments(model_name=model_name, data = data, 
                                 sample=sample, epochs=epochs, appliances=[app],
                                 appliance_id=idx, benchmark="single-appliance")  
                 results[app]=result
             np.save(save_path+"results.npy", results)
-            
-            
-    for data in ["ukdale"]:
-        for model_name in ["CNN1D", "UNETNiLM"]:
-            results = {}
-            results, save_path=run_experiments(model_name=model_name, data = data, 
-                                sample=sample, epochs=epochs, appliances=list(ukdale_appliance_data.keys()),
-                                appliance_id=None, benchmark="mutli-appliance")  
-            np.save(save_path+"results.npy", results)                        
