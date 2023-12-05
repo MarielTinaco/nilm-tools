@@ -123,20 +123,15 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
             "mean" : dataset.buildings[building].elec["fridge"].power_series_all_data().mean(),
             "std" : dataset.buildings[building].elec["fridge"].power_series_all_data().std(),
         },
-        "boiler" : {
-            "window" : 50,
-            "mean" : dataset.buildings[building].elec["boiler"].power_series_all_data().mean(),
-            "std" : dataset.buildings[building].elec["boiler"].power_series_all_data().std()
-        },
         "washer dryer" : {
             "window" : 50,
             "mean" : dataset.buildings[building].elec["washer dryer"].power_series_all_data().mean(),
             "std" : dataset.buildings[building].elec["washer dryer"].power_series_all_data().std()
         },
-        "HTPC" : {
-            "window" : 50,
-            "mean" : dataset.buildings[building].elec["HTPC"].power_series_all_data().mean(),
-            "std" : dataset.buildings[building].elec["HTPC"].power_series_all_data().std()
+        "kettle" : {
+            "window" : 10,
+            "mean" : dataset.buildings[building].elec["kettle"].power_series_all_data().mean(),
+            "std" : dataset.buildings[building].elec["kettle"].power_series_all_data().std()
         },
         "dish washer" : {
             "window" : 50,
@@ -170,7 +165,6 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
             power_series = power_elec[app].power_series_all_data()
             reduced_power_series = power_series[power_series.index.get_indexer(main_index, method="nearest")]
             reduced_power_series_list.append(reduced_power_series)
-            # reduced_power_series_list.append(reduced_power_series)
             meter = quantile_filter(appliance[app]["window"], reduced_power_series, p=50)
             state = binarization(meter, power_elec[app].on_power_threshold())
             meter = (meter - appliance[app]['mean'])/appliance[app]['std']
