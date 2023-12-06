@@ -151,7 +151,7 @@ class NILMnet(pl.LightningModule):
         with tqdm(total=len(values), file=sys.stdout) as pbar:
              with torch.no_grad():
                 for batch_idx, batch in enumerate(dataloader):
-                    logs = self.test_step(batch, batch_idx, model)
+                    logs = self.test_step(batch, batch_idx)
                     outputs.append(logs)
                     del  batch
                     pbar.set_description('processed: %d' % (1 + batch_idx))
