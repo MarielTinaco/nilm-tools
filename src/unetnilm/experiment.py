@@ -84,7 +84,7 @@ def run_experiments(model_name="CNN1D", denoise=True,
                     benchmark="single-appliance",
                     appliance_id = 0,
                     appliances = ["FRZ"],
-                    out_size = 6, quantiles=[0.0025,0.1, 0.5, 0.9, 0.975]):        
+                    out_size = 5, quantiles=[0.0025,0.1, 0.5, 0.9, 0.975]):        
     exp_name = f"{data}_{model_name}_quantiles" if len(quantiles)>1 else "{data}_{model_name}"
     if benchmark=="single-appliance":
         file_name = f"{exp_name}_single-appliance_{appliances[0]}"
@@ -123,14 +123,11 @@ if __name__ == "__main__":
         "fridge" : {
             "window" : 50,
         },
-        "boiler" : {
-            "window" : 50,
-        },
         "washer dryer" : {
             "window" : 50,
         },
-        "HTPC" : {
-            "window" : 50,
+        "kettle" : {
+            "window" : 10,
         },
         "dish washer" : {
             "window" : 50,
