@@ -6,6 +6,7 @@ from pathlib import Path
 import nilmtk   
 import matplotlib.pyplot as plt
 from skimage.measure import block_reduce
+from pprint import pprint
 
 sys.path.append('../../')
 from src.utils import paths_manager as pathsman
@@ -145,9 +146,6 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
         }
     }
 
-    mains_mean = dataset.buildings[building].elec.mains().power_series_all_data().mean()
-    mains_std = dataset.buildings[building].elec.mains().power_series_all_data().std()
-
     if isinstance(timeframe, Tuple):
         dataset.set_window(*timeframe)
     elif isinstance(timeframe, dict):
@@ -173,16 +171,19 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
 
     # mains_series = power_elec.mains().power_series_all_data()
     # reduced_main_power_series = mains_series[mains_series.index.get_indexer(main_index, method="nearest")]
-    
+
+    mains_mean = dataset.buildings[building].elec.mains().power_series_all_data().mean()
+    mains_std = dataset.buildings[building].elec.mains().power_series_all_data().std()
+
     mains_series = reduced_power_series_list[0]
     for i in reduced_power_series_list[1:]:
         mains_series += i.values
     reduced_main_power_series = mains_series
 
-    tv_power_series = power_elec["television"].power_series_all_data()
-    reduced_tv_power_series = tv_power_series[tv_power_series.index.get_indexer(main_index, method="nearest")]
+    # tv_power_series = power_elec["television"].power_series_all_data()
+    # reduced_tv_power_series = tv_power_series[tv_power_series.index.get_indexer(main_index, method="nearest")]
 
-    reduced_main_power_series = reduced_main_power_series + reduced_tv_power_series.values
+    # reduced_main_power_series = reduced_main_power_series + reduced_tv_power_series.values
 
     mains_denoise = quantile_filter(10, reduced_main_power_series, 50)
 
