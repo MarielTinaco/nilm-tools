@@ -10,7 +10,6 @@ from pathlib import Path
 import pytorch_lightning as pl
 from net.utils import get_latest_checkpoint
 from utils.utils import set_seed, get_device
-from utils.mappings import ukdale_appliance_data
 from IPython.display import clear_output
 
 import sys
