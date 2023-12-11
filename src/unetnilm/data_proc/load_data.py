@@ -145,9 +145,6 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
         }
     }
 
-    mains_mean = dataset.buildings[building].elec.mains().power_series_all_data().mean()
-    mains_std = dataset.buildings[building].elec.mains().power_series_all_data().std()
-
     if isinstance(timeframe, Tuple):
         dataset.set_window(*timeframe)
     elif isinstance(timeframe, dict):
@@ -173,7 +170,10 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
 
     # mains_series = power_elec.mains().power_series_all_data()
     # reduced_main_power_series = mains_series[mains_series.index.get_indexer(main_index, method="nearest")]
-    
+
+    mains_mean = dataset.buildings[building].elec.mains().power_series_all_data().mean()
+    mains_std = dataset.buildings[building].elec.mains().power_series_all_data().std()
+
     mains_series = reduced_power_series_list[0]
     for i in reduced_power_series_list[1:]:
         mains_series += i.values
