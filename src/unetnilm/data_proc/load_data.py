@@ -4,6 +4,7 @@ import numpy as np
 from typing import Union, Tuple, Dict
 from pathlib import Path
 import nilmtk   
+import json
 import matplotlib.pyplot as plt
 from skimage.measure import block_reduce
 from pprint import pprint
@@ -121,30 +122,33 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
     appliance = {
         "fridge" : {
             "window" : 50,
-            "mean" : dataset.buildings[building].elec["fridge"].power_series_all_data().mean(),
-            "std" : dataset.buildings[building].elec["fridge"].power_series_all_data().std(),
+            "mean" : float(dataset.buildings[building].elec["fridge"].power_series_all_data().mean()),
+            "std" : float(dataset.buildings[building].elec["fridge"].power_series_all_data().std()),
         },
         "washer dryer" : {
             "window" : 50,
-            "mean" : dataset.buildings[building].elec["washer dryer"].power_series_all_data().mean(),
-            "std" : dataset.buildings[building].elec["washer dryer"].power_series_all_data().std()
+            "mean" : float(dataset.buildings[building].elec["washer dryer"].power_series_all_data().mean()),
+            "std" : float(dataset.buildings[building].elec["washer dryer"].power_series_all_data().std())
         },
         "kettle" : {
             "window" : 10,
-            "mean" : dataset.buildings[building].elec["kettle"].power_series_all_data().mean(),
-            "std" : dataset.buildings[building].elec["kettle"].power_series_all_data().std()
+            "mean" : float(dataset.buildings[building].elec["kettle"].power_series_all_data().mean()),
+            "std" : float(dataset.buildings[building].elec["kettle"].power_series_all_data().std())
         },
         "dish washer" : {
             "window" : 50,
-            "mean" : dataset.buildings[building].elec["dish washer"].power_series_all_data().mean(),
-            "std" : dataset.buildings[building].elec["dish washer"].power_series_all_data().std()
+            "mean" : float(dataset.buildings[building].elec["dish washer"].power_series_all_data().mean()),
+            "std" : float(dataset.buildings[building].elec["dish washer"].power_series_all_data().std())
         },
         "microwave" : {
             "window" : 10,
-            "mean" : dataset.buildings[building].elec["microwave"].power_series_all_data().mean(),
-            "std" : dataset.buildings[building].elec["microwave"].power_series_all_data().std()
+            "mean" : float(dataset.buildings[building].elec["microwave"].power_series_all_data().mean()),
+            "std" : float(dataset.buildings[building].elec["microwave"].power_series_all_data().std())
         }
     }
+
+    with open('src/unetnilm/io/appliance_data.json', 'w') as infile:
+        json.dump(appliance, infile)
 
     if isinstance(timeframe, Tuple):
         dataset.set_window(*timeframe)
