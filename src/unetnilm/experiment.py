@@ -51,7 +51,7 @@ class NILMExperiment(object):
     def fit(self):
         file_name = self.params['file_name']
         self.arch = file_name
-        checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath=self.checkpoint_path, monitor='val_F1', mode="max", save_top_k=1)
+        checkpoint_callback = pl.callbacks.ModelCheckpoint(dirpath=self.checkpoint_path,filename='unetnilm-{epoch:02d}-{val_F1:.2f}', monitor='val_F1', mode="max",save_top_k=-1)
         early_stopping = pl.callbacks.EarlyStopping(monitor='val_F1', min_delta=1e-4, patience=20, mode="max")
         logger = DictLogger(self.logs_path, name=file_name, version=self.params['exp_name'])
         trainer = pl.Trainer(
@@ -120,7 +120,7 @@ def run_experiments(model_name="CNN1D", denoise=True,
 
 if __name__ == "__main__": 
     sample=None
-    epochs=20
+    epochs=30
             
     appliance = {
         "fridge" : {
