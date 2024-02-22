@@ -4,6 +4,7 @@ from tqdm import tqdm
 import numpy as np
 import sys
 import torch
+import json
 import torch.nn.functional as F
 from argparse import ArgumentParser
 from .modules import CNN1DModel,  UNETNiLM
@@ -13,7 +14,12 @@ from .utils import ObjectDict, QuantileLoss
 # from pytorch_lightning.metrics.functional import f1_score
 from torchmetrics.functional import f1_score
 
-from utils.mappings import ukdale_appliance_data
+# from utils.mappings import ukdale_appliance_data
+
+# appliance_data = {'fridge': {'window': 50, 'mean': 40.158577, 'std': 53.56288}, 'washer dryer': {'window': 50, 'mean': 27.768433, 'std': 212.51971}, 'kettle': {'window': 10, 'mean': 16.753872, 'std': 191.05873}, 'dish washer': {'window': 50, 'mean': 27.384077, 'std': 239.23492}, 'microwave': {'window': 10, 'mean': 8.35921, 'std': 105.1099}}
+
+with open('io/appliance_data.json') as infile:
+    appliance_data = json.load(infile)
 
 class NILMnet(pl.LightningModule):
     def __init__(self, hparams):
@@ -109,7 +115,7 @@ class NILMnet(pl.LightningModule):
     
     def test_epoch_end(self, outputs):
         
-        appliance_data = ukdale_appliance_data
+        # appliance_data = {'fridge': {'window': 50, 'mean': 40.158577, 'std': 53.56288}, 'washer dryer': {'window': 50, 'mean': 27.768433, 'std': 212.51971}, 'kettle': {'window': 10, 'mean': 16.753872, 'std': 191.05873}, 'dish washer': {'window': 50, 'mean': 27.384077, 'std': 239.23492}, 'microwave': {'window': 10, 'mean': 8.35921, 'std': 105.1099}}
         pred_power = torch.cat([x['pred_power'] for x in outputs], 0).cpu().numpy()
         pred_state = torch.cat([x['pred_state'] for x in outputs], 0).cpu().numpy().astype(np.int32)
         power = torch.cat([x['power'] for x in outputs], 0).cpu().numpy()
@@ -248,7 +254,7 @@ class NILMnet(pl.LightningModule):
         parser.add_argument('--model_name', default="CNN1D", type=str)
         parser.add_argument('--benchmark', default="Seq2Point", type=str)
         parser.add_argument('--appliance_id', default=0, type=int)
-        parser.add_argument('--appliances', default=list(ukdale_appliance_data.keys()), type=list)
+        parser.add_argument('--appliances', default=list(appliance_data.keys()), type=list)
         parser.add_argument('--data', default="ukdale", type=str)
         parser.add_argument('--quantiles', default=[0.0025,0.1, 0.5, 0.9, 0.975], type=list)
         parser.add_argument('--num_workers', default=4, type=int)
