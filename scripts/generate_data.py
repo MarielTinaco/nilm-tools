@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from src.unetnilm.data_proc.load_data import pre_proc_ukdale, pre_proc_ukdale_nilmtk
 
 # params = [
@@ -16,5 +18,15 @@ params = [
 
 for param in params:
         print(f"PREPROCESS DATA FOR {param[0]}, TIME WINDOW OF {param[1]}")
+        directory = param[0]
+        
+        main_path = Path("src") / "unetnilm" / "data" / "ukdale" / directory
+        main_path.mkdir(parents=True, exist_ok=True)
+
+        open(main_path / "targets.npy", "a").close()
+        open(main_path / "states.npy", "a").close()
+        open(main_path / "noise_inputs.npy", "a").close()
+        open(main_path / "denoise_inputs.npy", "a").close()
+        
         pre_proc_ukdale_nilmtk(param[0], timeframe=param[1])
 
