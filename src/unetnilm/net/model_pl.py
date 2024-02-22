@@ -14,12 +14,12 @@ from .utils import ObjectDict, QuantileLoss
 # from pytorch_lightning.metrics.functional import f1_score
 from torchmetrics.functional import f1_score
 
-# from utils.mappings import ukdale_appliance_data
+from utils.mappings import ukdale_appliance_data as appliance_data
 
 # appliance_data = {'fridge': {'window': 50, 'mean': 40.158577, 'std': 53.56288}, 'washer dryer': {'window': 50, 'mean': 27.768433, 'std': 212.51971}, 'kettle': {'window': 10, 'mean': 16.753872, 'std': 191.05873}, 'dish washer': {'window': 50, 'mean': 27.384077, 'std': 239.23492}, 'microwave': {'window': 10, 'mean': 8.35921, 'std': 105.1099}}
 
-with open('io/appliance_data.json') as infile:
-    appliance_data = json.load(infile)
+# with open('io/appliance_data.json') as infile:
+#     appliance_data = json.load(infile)
 
 class NILMnet(pl.LightningModule):
     def __init__(self, hparams):
