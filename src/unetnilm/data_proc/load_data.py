@@ -215,10 +215,11 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
     mains = np.where(mains < mains_denoise, mains_denoise, mains)
     mains = quantile_filter(10, mains, 50)
     
-    norm_mains_denoise = (mains_denoise - mains_denoise.mean()) / mains_denoise.std()
     if norm:
+        norm_mains_denoise = (mains_denoise - mains_denoise.min())/(mains_denoise.max() - mains_denoise.min())
         norm_mains = (mains - mains_min)/(mains_max - mains_min)
     else:
+        norm_mains_denoise = (mains_denoise - mains_denoise.mean()) / mains_denoise.std()
         norm_mains = (mains - mains_mean) / mains_std
 
     states = np.stack(states).T
