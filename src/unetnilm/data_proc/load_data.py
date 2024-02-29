@@ -184,7 +184,7 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
         if norm==0:
             meter = (meter - appliance[app]['min'])/(appliance[app]['max'] - appliance[app]['min'])
         elif norm==1:
-            meter = 2((meter - appliance[app]['min'])/(appliance[app]['max'] - appliance[app]['min']))-1
+            meter = 2*((meter - appliance[app]['min'])/(appliance[app]['max'] - appliance[app]['min']))-1
         else:
             meter = (meter - appliance[app]['mean'])/appliance[app]['std']
         targets.append(meter)
@@ -221,8 +221,8 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
         norm_mains_denoise = (mains_denoise - mains_denoise.min())/(mains_denoise.max() - mains_denoise.min())
         norm_mains = (mains - mains_min)/(mains_max - mains_min)
     elif norm==1:
-        norm_mains_denoise = 2((mains_denoise - mains_denoise.min())/(mains_denoise.max() - mains_denoise.min()))-1
-        norm_mains = 2((mains - mains_min)/(mains_max - mains_min))-1
+        norm_mains_denoise = 2*((mains_denoise - mains_denoise.min())/(mains_denoise.max() - mains_denoise.min()))-1
+        norm_mains = 2*((mains - mains_min)/(mains_max - mains_min))-1
     else:
         norm_mains_denoise = (mains_denoise - mains_denoise.mean()) / mains_denoise.std()
         norm_mains = (mains - mains_mean) / mains_std
