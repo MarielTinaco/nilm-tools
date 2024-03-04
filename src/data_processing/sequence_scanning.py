@@ -1,31 +1,31 @@
-__all___ = ["ActivationScannerContext", "WindowActivationScanner"]
+__all___ = ["SequenceScannerContext", "WindowSequenceScanner"]
 
 import numpy as np
 from abc import ABC, abstractmethod
 from typing import Optional, Union, List
 
 
-class ActivationScannerContext(object):
+class SequenceScannerContext(object):
 
         DEFAULT_SCAN_NUM = 2
 
         def __init__(self, 
-                        strategy : Optional[Union["ActivationScanner", str]] = None,
+                        strategy : Optional[Union["SequenceScanner", str]] = None,
                         seq_len : int = 100,
                         *args,
                         **kwargs):
 
                 if strategy is None:
-                        strategy = WindowActivationScanner(seq_len,
+                        strategy = WindowSequenceScanner(seq_len,
                                                            n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
 
                 elif isinstance(strategy, str):
                         if strategy != "window":
                                 print(f"""
                                 WARNING: '{strategy}' mode not available. Please select between ["window"].
-                                Defaulting to Window Activation scan mode.
+                                Defaulting to Window Sequence scan mode.
                                 """)
-                                strategy = WindowActivationScanner(seq_len,
+                                strategy = WindowSequenceScanner(seq_len,
                                                                 n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
 
                 self._strategy = strategy
@@ -42,7 +42,7 @@ class ActivationScannerContext(object):
                 return self._strategy.scan(data)
 
 
-class ActivationScanner(ABC):
+class SequenceScanner(ABC):
     
         def __init__(self, seq_len, *args, **kwargs):
                 self._seq_len = seq_len
@@ -56,10 +56,10 @@ class ActivationScanner(ABC):
                raise NotImplementedError
 
 
-class WindowActivationScanner(ActivationScanner):
+class WindowSequenceScanner(SequenceScanner):
        
         def __init__(self, seq_len, n_windows, *args, **kwargs):
-              super(WindowActivationScanner, self).__init__(seq_len, *args, **kwargs)
+              super(WindowSequenceScanner, self).__init__(seq_len, *args, **kwargs)
               self.n_windows = n_windows
 
         def scan(self, data: np.ndarray) -> List[np.ndarray]:

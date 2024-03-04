@@ -2,13 +2,13 @@
 import numpy as np
 import pytest
 
-from src.data_processing.activation_scanning import *
+from src.data_processing.sequence_scanning import *
 
 
-def test_window_activation_scan_init():
-        scanner = ActivationScannerContext()
+def test_window_Sequence_scan_init():
+        scanner = SequenceScannerContext()
 
-        assert isinstance(scanner.strategy, WindowActivationScanner)
+        assert isinstance(scanner.strategy, WindowSequenceScanner)
 
 
 @pytest.mark.parametrize(
@@ -20,9 +20,9 @@ def test_window_activation_scan_init():
          (np.zeros(shape=(10,), dtype=float), 100, 1),
          (np.ones(shape=(10,), dtype=float), 100, 1),]
 )
-def test_window_activation_scan_shape(dummy_data, seq_len, n_windows):
-        strategy = WindowActivationScanner(seq_len=seq_len, n_windows=n_windows)
-        scanner = ActivationScannerContext(strategy=strategy)
+def test_window_sequence_scan_shape(dummy_data, seq_len, n_windows):
+        strategy = WindowSequenceScanner(seq_len=seq_len, n_windows=n_windows)
+        scanner = SequenceScannerContext(strategy=strategy)
         output_data = scanner(dummy_data)
 
         assert len(output_data) == n_windows
