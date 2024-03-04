@@ -2,7 +2,11 @@ __all___ = ["SequenceScannerContext", "WindowSequenceScanner"]
 
 import numpy as np
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Optional, Union, List
+
+class SequenceScannerType(Enum):
+        WINDOW = "window"
 
 
 class SequenceScannerContext(object):
@@ -10,23 +14,27 @@ class SequenceScannerContext(object):
         DEFAULT_SCAN_NUM = 2
 
         def __init__(self, 
-                        strategy : Optional[Union["SequenceScanner", str]] = None,
-                        seq_len : int = 100,
-                        *args,
-                        **kwargs):
+                     strategy : Optional[Union["SequenceScanner", str]] = None,
+                     seq_len : int = 100,
+                     *args,
+                     **kwargs):
 
                 if strategy is None:
                         strategy = WindowSequenceScanner(seq_len,
-                                                           n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
+                                                         n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
 
                 elif isinstance(strategy, str):
-                        if strategy != "window":
+                        if strategy == "window":
+                                strategy = WindowSequenceScanner(seq_len,
+                                                                 n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)                                
+
+                        else:
                                 print(f"""
                                 WARNING: '{strategy}' mode not available. Please select between ["window"].
                                 Defaulting to Window Sequence scan mode.
                                 """)
                                 strategy = WindowSequenceScanner(seq_len,
-                                                                n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
+                                                                 n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
 
                 self._strategy = strategy
 
@@ -77,10 +85,22 @@ class WindowSequenceScanner(SequenceScanner):
                 for n in range(self.n_windows):
                         start = int(n*diff)
                         end = start + self.seq_len
-                        if end + 1 <= data.shape[0]:
+                        if end < data.shape[0]:
                                 container.append(data[start:end])
                 return container
 
 
         def __repr__(self) -> str:
                return "window"
+
+
+def scan_sequences(data, seq_len=100, num_windows=20, mode="window", *args, **kwargs):
+
+        if mode not in SequenceScannerType._member_names_:
+                mode = "window"
+
+        scanner = SequenceScannerContext(strategy=mode,
+                                         seq_len=seq_len,
+                                         num_windows=num_windows)
+
+        return scanner(data)
