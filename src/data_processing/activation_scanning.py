@@ -1,10 +1,13 @@
+__all___ = ["ActivationScannerContext", "WindowActivationScanner"]
 
+import numpy as np
 from abc import ABC, abstractmethod
 from typing import Optional, Union, List
-from numpy import ndarray
 
 
 class ActivationScannerContext(object):
+
+        DEFAULT_SCAN_NUM = 2
 
         def __init__(self, 
                         strategy : Optional[Union["ActivationScanner", str]] = None,
@@ -12,18 +15,18 @@ class ActivationScannerContext(object):
                         *args,
                         **kwargs):
 
-                if isinstance(strategy, str):
-                        if strategy == "zero-padded":
-                                strategy = ZeroPaddedActivationScanner(seq_len,
-                                                                       stride=kwargs.get("num_windows") or 10)
-                        else:
-                                if strategy != "window":
-                                        print(f"""
-                                        WARNING: '{strategy}' mode not available. Please select between ["zero-padded", "window"].
-                                        Defaulting to Window Activation scan mode.
-                                        """)
+                if strategy is None:
+                        strategy = WindowActivationScanner(seq_len,
+                                                           n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
+
+                elif isinstance(strategy, str):
+                        if strategy != "window":
+                                print(f"""
+                                WARNING: '{strategy}' mode not available. Please select between ["window"].
+                                Defaulting to Window Activation scan mode.
+                                """)
                                 strategy = WindowActivationScanner(seq_len,
-                                                                        stride=kwargs.get("num_windows") or 10)
+                                                                n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
 
                 self._strategy = strategy
 
@@ -35,7 +38,7 @@ class ActivationScannerContext(object):
         def strategy(self):
                 return self._strategy
 
-        def __call__(self, data: ndarray) -> List[ndarray]:
+        def __call__(self, data: np.ndarray) -> List[np.ndarray]:
                 return self._strategy.scan(data)
 
 
@@ -49,26 +52,35 @@ class ActivationScanner(ABC):
                return self._seq_len
 
         @abstractmethod
-        def scan(self, data: ndarray) -> List[ndarray]:
+        def scan(self, data: np.ndarray) -> List[np.ndarray]:
                raise NotImplementedError
-
-
-class ZeroPaddedActivationScanner(ActivationScanner):
-
-        def __init__(self, seq_len, stride, *args, **kwargs):
-                super(ZeroPaddedActivationScanner, self).__init__(seq_len, *args, **kwargs)
-                self.stride = stride
-
-        def scan(self, data: ndarray) -> List[ndarray]:
-                if data.shape[0] <= self.seq_len:
-                        return [data]
 
 
 class WindowActivationScanner(ActivationScanner):
        
-       def __init__(self, seq_len, stride, *args, **kwargs):
+        def __init__(self, seq_len, n_windows, *args, **kwargs):
               super(WindowActivationScanner, self).__init__(seq_len, *args, **kwargs)
-              self.stride = stride
+              self.n_windows = n_windows
 
-       def scan(self, data: ndarray) -> List[ndarray]:
-              ...
+        def scan(self, data: np.ndarray) -> List[np.ndarray]:
+                if data.shape[0] == self.seq_len:
+                        return [data]
+                elif data.shape[0] < self.seq_len:
+                        pads = self.seq_len - data.shape[0]
+                        left_pad = pads//2
+                        right_pad = pads - left_pad
+                        res = np.pad(data, (left_pad, right_pad), 'constant', constant_values=0)
+                        return [res]
+
+                diff = int((data.shape[0]//self.n_windows)-1)
+                container = []
+                for n in range(self.n_windows):
+                        start = int(n*diff)
+                        end = start + self.seq_len
+                        if end + 1 <= data.shape[0]:
+                                container.append(data[start:end])
+                return container
+
+
+        def __repr__(self) -> str:
+               return "window"
