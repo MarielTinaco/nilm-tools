@@ -29,3 +29,12 @@ def test_window_sequence_scan_shape(dummy_data, seq_len, n_windows):
 
         for window in output_data:
                 assert window.shape == (seq_len,)
+
+def test_odd_window_sequence_scan_init():
+        scanner = SequenceScannerContext(OddWindowSequenceScanner(100))
+
+        assert isinstance(scanner.strategy, OddWindowSequenceScanner)
+
+        pop = scanner(np.zeros(shape=(1000,), dtype=float))
+
+        assert pop[0].shape == (99,)
