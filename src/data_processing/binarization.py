@@ -16,7 +16,7 @@ class BinarizationContext(object):
                 
 
                 if isinstance(strategy, str):
-                        if strategy == "threshold":
+                        if BinarizationTypes(strategy) == BinarizationTypes.THRESHOLD:
                                 strategy = ThresholdBinarization(threshold=kwargs.get("threshold") or 10)
 
                         else:

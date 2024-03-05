@@ -92,14 +92,14 @@ class WindowSequenceScanner(SequenceScanner):
                         right_pad = pads - left_pad
                         res = np.pad(data, (left_pad, right_pad), 'constant', constant_values=0)
                         yield res
+                else:
+                        diff = int((data.shape[0]//self.n_windows)-1)
 
-                diff = int((data.shape[0]//self.n_windows)-1)
-
-                for n in range(self.n_windows):
-                        start = int(n*diff)
-                        end = start + self.seq_len
-                        if end < data.shape[0]:
-                                yield data[start:end]
+                        for n in range(self.n_windows):
+                                start = int(n*diff)
+                                end = start + self.seq_len
+                                if end < data.shape[0]:
+                                        yield data[start:end]
 
         def __repr__(self) -> str:
                return "window"
