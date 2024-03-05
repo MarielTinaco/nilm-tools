@@ -7,6 +7,7 @@ from typing import Optional, Union, List
 
 class SequenceScannerType(Enum):
         WINDOW = "window"
+        ODD_WINDOW = "odd_window"
 
 
 class SequenceScannerContext(object):
@@ -24,9 +25,11 @@ class SequenceScannerContext(object):
                                                          n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
 
                 elif isinstance(strategy, str):
-                        if strategy == "window":
+                        if SequenceScannerType(strategy) == SequenceScannerType.WINDOW:
                                 strategy = WindowSequenceScanner(seq_len,
                                                                  n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)                                
+                        elif SequenceScannerType(strategy) == SequenceScannerType.ODD_WINDOW:
+                                strategy = OddWindowSequenceScanner(seq_len)       
 
                         else:
                                 print(f"""
