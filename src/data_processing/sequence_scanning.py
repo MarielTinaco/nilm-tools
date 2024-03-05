@@ -1,4 +1,4 @@
-__all___ = ["SequenceScannerContext", "WindowSequenceScanner" , "OddWindowSequenceScanner"]
+__all___ = ["SequenceScannerContext", "WindowSequenceScanner" , "OddWindowSequenceScanner", "SlidingShortWindowSequenceScanner"]
 
 import numpy as np
 from abc import ABC, abstractmethod
@@ -8,7 +8,7 @@ from typing import Optional, Union, List
 class SequenceScannerType(Enum):
         WINDOW = "window"
         ODD_WINDOW = "odd_window"
-
+        SLIDING_SHORT_WINDOW = "slide_short"
 
 class SequenceScannerContext(object):
 
@@ -31,11 +31,12 @@ class SequenceScannerContext(object):
                         elif SequenceScannerType(strategy) == SequenceScannerType.ODD_WINDOW:
                                 strategy = OddWindowSequenceScanner(seq_len)       
 
+                        elif SequenceScannerType(strategy) == SequenceScannerType.SLIDING_SHORT_WINDOW:
+                                strategy = SlidingShortWindowSequenceScanner(seq_len=seq_len,
+                                                                             n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
+
                         else:
-                                print(f"""
-                                WARNING: '{strategy}' mode not available. Please select between ["window"].
-                                Defaulting to Window Sequence scan mode.
-                                """)
+                                
                                 strategy = WindowSequenceScanner(seq_len,
                                                                  n_windows=kwargs.get("num_windows") or self.DEFAULT_SCAN_NUM)
 
@@ -118,13 +119,43 @@ class OddWindowSequenceScanner(SequenceScanner):
                         yield new_mains[i:i + seq_len]
 
 
+class SlidingShortWindowSequenceScanner(SequenceScanner):
+
+        def __init__(self, seq_len, n_windows, *args, **kwargs):
+              super(SlidingShortWindowSequenceScanner, self).__init__(seq_len, *args, **kwargs)
+              self.n_windows = n_windows
+
+        def scan(self, data: np.ndarray) -> List[np.ndarray]:
+                return list(self.generator(data))
+
+        def generator(self, data):
+                width = data.shape[0]
+                max_initial_position = self.seq_len - width
+                strides = max_initial_position // self.n_windows
+                for i in range(self.n_windows):
+                        left_pad = int(i*strides)
+                        right_pad = self.seq_len - left_pad - width
+                        padded = np.pad(data, (left_pad, right_pad), 'constant', constant_values=(0, 0))
+                        yield padded
+
+
 def scan_sequences(data, seq_len=100, num_windows=20, mode="window", *args, **kwargs):
 
         if mode not in SequenceScannerType._member_names_:
                 mode = "window"
+                print(f"""
+                        WARNING: '{mode}' mode not available. Please select between {SequenceScannerType._member_names_}.
+                        Defaulting to Window Sequence scan mode.
+                """)
 
         scanner = SequenceScannerContext(strategy=mode,
                                          seq_len=seq_len,
                                          num_windows=num_windows)
 
         return scanner(data)
+
+seqScannerFactory = {
+        SequenceScannerType.WINDOW : WindowSequenceScanner,
+        SequenceScannerType.ODD_WINDOW : OddWindowSequenceScanner,
+        SequenceScannerType.SLIDING_SHORT_WINDOW : SlidingShortWindowSequenceScanner
+}
