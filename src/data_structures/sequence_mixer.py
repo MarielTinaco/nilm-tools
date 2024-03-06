@@ -9,6 +9,5 @@ class RandomSequenceMixer(object):
 
         def get(self):
                 ret = [random.choice(i) for i in self.args]
-                combined = np.sum(ret)
+                combined = np.sum(ret, axis=0)
                 return ret, combined
-                
