@@ -152,7 +152,7 @@ class TailendSequenceScanner(SequenceScanner):
 
         def generator(self, data):
                 width = data.shape[0]
-                assert self.seq_len <= width, "Sequence length must be less than or equal data width"
+                # assert self.seq_len <= width, "Sequence length must be less than or equal data width"
                 
                 for i in range(self._left_tail_windows):
                         strides = width // (self._left_tail_windows)
@@ -165,6 +165,9 @@ class TailendSequenceScanner(SequenceScanner):
                         right_pad = int(i*strides)
                         padded = np.pad(data, (0, right_pad), 'constant', constant_values=(0, 0))
                         yield padded[-self.seq_len-1:-1]
+
+
+
 
 
 def scan_sequences(data, seq_len=100, num_windows=20, mode="window", *args, **kwargs):
