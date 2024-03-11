@@ -158,15 +158,17 @@ class TailendSequenceScanner(SequenceScanner):
                         strides = width // (self._left_tail_windows)
                         left_pad = int(i*strides)
                         padded = np.pad(data, (left_pad, 0), 'constant', constant_values=(0, 0))
-                        yield padded[:self.seq_len]
+                        extract = padded[:self.seq_len]
+                        if extract.shape[0] == self.seq_len:
+                                yield extract
 
                 for i in range(self._right_tail_windows):
                         strides = width // (self._right_tail_windows)
                         right_pad = int(i*strides)
                         padded = np.pad(data, (0, right_pad), 'constant', constant_values=(0, 0))
-                        yield padded[-self.seq_len-1:-1]
-
-
+                        extract = padded[-self.seq_len-1:-1]
+                        if extract.shape[0] == self.seq_len:
+                                yield extract
 
 
 
