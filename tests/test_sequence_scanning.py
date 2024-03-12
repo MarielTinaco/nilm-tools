@@ -76,3 +76,28 @@ def test_adaptive_window_sequence_scan_shape(dummy_data, seq_len, n_windows):
 
         for window in output_data:
                 assert window.shape == (seq_len,)
+
+@pytest.mark.parametrize(
+        "dummy_data, seq_len, n_windows",
+        [(np.zeros(shape=(1000,), dtype=float), 100, 10),
+         (np.ones(shape=(1000,), dtype=float), 100, 10),
+         (np.zeros(shape=(1000,), dtype=float), 100, 11),
+         (np.ones(shape=(1000,), dtype=float), 100, 11),
+         (np.zeros(shape=(1000,), dtype=float), 100, (6,7)),
+         (np.ones(shape=(1000,), dtype=float), 100, (6,7)),
+         (np.ones(shape=(1000,), dtype=float), 100, (6,0)),
+         (np.zeros(shape=(1000,), dtype=float), 99, 10),
+         (np.ones(shape=(1000,), dtype=float), 99, 10),]
+)
+def test_tailend_sequence_scan(dummy_data, seq_len, n_windows):
+        strategy = TailendSequenceScanner(seq_len=seq_len, n_windows=n_windows)
+        scanner = SequenceScannerContext(strategy=strategy)
+        output_data = scanner(dummy_data)
+
+        if isinstance(n_windows, int):
+                assert len(output_data) == n_windows
+        elif isinstance(n_windows, tuple):
+                assert len(output_data) == sum(n_windows)
+
+        for window in output_data:
+                assert window.shape == (seq_len,)

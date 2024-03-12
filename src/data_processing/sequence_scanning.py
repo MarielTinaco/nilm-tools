@@ -11,6 +11,7 @@ class SequenceScannerType(Enum):
         ODD_WINDOW = "odd_window"
         SLIDING_SHORT_WINDOW = "slide_short"
         ADAPTIVE = "adaptive"
+        TAIL = "tail"
 
 
 class SequenceScannerContext(object):
@@ -133,6 +134,44 @@ class LengthAdaptiveSequenceScanner(SequenceScanner):
                return SequenceScannerType.ADAPTIVE.value
 
 
+class TailendSequenceScanner(SequenceScanner):
+
+        def __init__(self, seq_len, n_windows=None, *args, **kwargs):
+                self._seq_len = seq_len
+                self.n_windows = n_windows
+
+                if isinstance(self.n_windows, int):
+                        self._left_tail_windows = self.n_windows // 2
+                        self._right_tail_windows = self.n_windows - self._left_tail_windows
+                elif isinstance(self.n_windows, tuple):
+                        assert len(self.n_windows) == 2, "Must declare number windows for both left and right tail"
+                        self._left_tail_windows = self.n_windows[0]
+                        self._right_tail_windows = self.n_windows[1]
+                else:
+                        raise ValueError(f"n_windows parameter doesn't support {type(self.n_windows)}")
+
+        def generator(self, data):
+                width = data.shape[0]
+                # assert self.seq_len <= width, "Sequence length must be less than or equal data width"
+                
+                for i in range(self._left_tail_windows):
+                        strides = width // (self._left_tail_windows)
+                        left_pad = int(i*strides)
+                        padded = np.pad(data, (left_pad, 0), 'constant', constant_values=(0, 0))
+                        extract = padded[:self.seq_len]
+                        if extract.shape[0] == self.seq_len:
+                                yield extract
+
+                for i in range(self._right_tail_windows):
+                        strides = width // (self._right_tail_windows)
+                        right_pad = int(i*strides)
+                        padded = np.pad(data, (0, right_pad), 'constant', constant_values=(0, 0))
+                        extract = padded[-self.seq_len-1:-1]
+                        if extract.shape[0] == self.seq_len:
+                                yield extract
+
+
+
 def scan_sequences(data, seq_len=100, num_windows=20, mode="window", *args, **kwargs):
         if mode not in [i.value for i in SequenceScannerType]:
                 mode = "window"
@@ -152,5 +191,6 @@ seqScannerFactory = {
         SequenceScannerType.WINDOW : WindowSequenceScanner,
         SequenceScannerType.ODD_WINDOW : OddWindowSequenceScanner,
         SequenceScannerType.SLIDING_SHORT_WINDOW : SlidingShortWindowSequenceScanner,
-        SequenceScannerType.ADAPTIVE : LengthAdaptiveSequenceScanner
+        SequenceScannerType.ADAPTIVE : LengthAdaptiveSequenceScanner,
+        SequenceScannerType.TAIL : TailendSequenceScanner
 }
