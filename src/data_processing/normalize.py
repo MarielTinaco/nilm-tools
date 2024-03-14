@@ -1,4 +1,4 @@
-__all___ = ["MinMaxScalling", "ModifiedMinMaxScaling", "StandardScaling"]
+__all___ = ["MinMaxScaling", "ModifiedMinMaxScaling", "StandardScaling"]
 
 from abc import ABC, abstractmethod
 import numpy as np
