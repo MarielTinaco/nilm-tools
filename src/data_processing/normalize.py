@@ -74,8 +74,35 @@ class StandardScaling(NormalizeStrategy):
         return denorm_data
 
 
-NormalizationProfiles = {
-    NormalizationType.MINMAX: MinMaxScalling,
-    NormalizationType.MODMINMAX: ModifiedMinMaxScalling,
-    NormalizationType.STANDARD: StandardScalling,
+NormalizationRegistry = {
+    NormalizationType.MINMAX: MinMaxScaling,
+    NormalizationType.MODMINMAX: ModifiedMinMaxScaling,
+    NormalizationType.STANDARD: StandardScaling,
 }
+
+
+class NormalizationHandler(object):
+
+    def __init__(self, mode, *args, **kwargs):
+        #additional guard clause for different normalization
+
+        self.select_mode(mode, *args, **kwargs)
+
+#add function for switch mode
+    def select_mode(self, mode, *args, **kwargs):
+        if mode not in [i.value for i in NormalizationType]:
+            raise f"{mode} Handling Not Supported"
+            
+        Handler = NormalizationRegistry[NormalizationType(mode)]
+        self.ctx = NormalizationContext(strategy=Handler(*args, **kwargs))
+
+
+    def normalize(self, data):
+        return self.ctx.normalize(data)
+
+    def denormalize(self, data):
+        return self.ctx.denormalize(data)
+
+# if __name__ == "__main__" :
+#     test = NormalizationHandler(mode="minmax", min_val = 100, max_val=500)
+#     test.normalize(data)
