@@ -42,7 +42,7 @@ class MinMaxScaling(NormalizeStrategy):
         return norm_data
 
     def denormalize(self, data) -> np.ndarray:
-        denorm_data = data * (self.max_val - self.min_val) + self.min_val
+        denorm_data = data * (self.max - self.min) + self.min
         return denorm_data
 
 
