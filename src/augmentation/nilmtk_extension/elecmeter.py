@@ -1,7 +1,17 @@
+import random
 import numpy as np
+import itertools as it
 import nilmtk
 
-from typing import Protocol
+
+from enum import Enum
+from typing import Protocol, Union, Callable
+from concurrent.futures import ThreadPoolExecutor
+
+
+class NILMTKActivationExtenderTypes(Enum):
+        APPENDER = "appender"
+        RANDOMIZER = "randomizer"
 
 
 class ActivationExtension(Protocol):
@@ -10,17 +20,55 @@ class ActivationExtension(Protocol):
                 pass
 
 
+class ElecmeterActivationRandomizer:
+
+        def __init__(self, data : nilmtk.ElecMeter):
+                self.data = data
+
+        def _generator(self, activations, interval_func : Callable):
+                while True: yield np.hstack([random.choice(activations).values, np.zeros(interval_func())])
+
+        def extend(self, num_samples = 0, interval : Union[Callable, int] = 0):
+                interval_func = interval if isinstance(interval, Callable) else lambda : interval
+                num_samples = num_samples + len(self.data.power_series_all_data())
+                activation_stack = []
+                accumulated_length = 0
+
+                for activation in self._generator(self.data.get_activations(), interval_func=interval_func):
+                        if accumulated_length > num_samples:
+                                break
+
+                        activation_stack.append(activation)
+                        accumulated_length += len(activation)
+
+                acts = np.hstack(activation_stack)
+                return acts[:num_samples]
+
+
 class ElecmeterActivationAppender:
 
         def __init__(self, data : nilmtk.ElecMeter):
                 self.data = data
 
         def _generator(self, activations, interval=0):
-                for activation in activations:
-                        stacked = np.hstack([activation.values, np.zeros(interval)])
-                        yield stacked
+                while True: yield np.hstack([random.choice(activations).values, np.zeros(interval)])
 
         def extend(self, num_samples = 0, interval=0) -> np.ndarray:
                 power_series = self.data.power_series_all_data()
-                acts = np.hstack(list(self._generator(self.data.get_activations(), interval=interval or ())))
+                activation_stack = []
+                accumulated_length = 0
+
+                for activation in self._generator(self.data.get_activations(), interval=interval or ()):
+                        if accumulated_length > num_samples:
+                                break
+                        activation_stack.append(activation)
+                        accumulated_length += len(activation)
+
+                acts = np.hstack(activation_stack)
                 return np.hstack([power_series.values, acts[:num_samples]])
+
+
+NILMTKActivationExtenderRegistry = {
+        NILMTKActivationExtenderTypes.APPENDER : ElecmeterActivationAppender,
+        NILMTKActivationExtenderTypes.RANDOMIZER : ElecmeterActivationRandomizer
+}
