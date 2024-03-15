@@ -5,7 +5,8 @@ import numpy as np
 from abc import ABC
 from enum import Enum, auto
 
-from .nilmtk_extension.elecmeter import ElecmeterActivationAppender
+from .nilmtk_extension.elecmeter import ElecmeterActivationAppender, ElecmeterActivationRandomizer, \
+                NILMTKActivationExtenderRegistry, NILMTKActivationExtenderTypes
 
 class ActivationExtensionTypes(Enum):
         ZERO = "zero"
@@ -44,7 +45,9 @@ def extend_activations(data, num_full_samples, mode=None, *args, **kwargs):
                 assert num_full_samples > len(data.power_series_all_data()), \
                         f"Select num_full_samples value greated than {len(data.power_series_all_data())}"
 
-                if mode is None:
+                if mode:
+                        ActivationExtension = NILMTKActivationExtenderRegistry[NILMTKActivationExtenderTypes(mode)]
+                else:
                         ActivationExtension = ElecmeterActivationAppender
 
                 num_samples = int(num_full_samples - len(data.power_series_all_data()))
@@ -57,7 +60,6 @@ def extend_activations(data, num_full_samples, mode=None, *args, **kwargs):
                 extras = {}
 
         ctx = ActivationExtensionContext(ActivationExtension(data))
-
         return ctx.extend(num_samples=num_samples, **extras)
 
 
@@ -72,7 +74,7 @@ if __name__ == "__main__":
         BUILDING = 1
         TIME_START = "2015-01-01"
         TIME_END = "2015-01-15"
-        APPLIANCE = "fridge"
+        APPLIANCE = "washer dryer"
 
         dataset = nilmtk.DataSet(pathsman.UKDALE_H5_PATH)
         dataset.set_window(start=TIME_START, end=TIME_END)
@@ -82,7 +84,7 @@ if __name__ == "__main__":
         # ctx = ActivationExtensionContext(strategy=strat)
         # extended = ctx.extend(num_samples=2000, interval=50)
 
-        extended = extend_activations(data=elecmeter, num_full_samples=200000, mode=None, interval=10)
+        extended = extend_activations(data=elecmeter, num_full_samples=200000, mode="randomizer", interval=10)
 
         # print(len(extended))
 

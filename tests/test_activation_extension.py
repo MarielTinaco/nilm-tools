@@ -1,4 +1,5 @@
 import pytest
+import random
 import nilmtk
 
 import src.utils.paths_manager as pathsman
@@ -16,31 +17,30 @@ def create_test_nilmtk_elecmeter_data():
 
         return elecmeter
 
-def test_activation_extension():
-        ...
+def test_elecmeter_activation_extension():
 
+        TEST_NUM_SAMPLES = 100
 
-# def test_elecmeter_activation_extension():
+        elecmeter = create_test_nilmtk_elecmeter_data()
 
-#         TEST_NUM_SAMPLES = 100
+        assert type(elecmeter) == nilmtk.ElecMeter
 
-#         elecmeter = create_test_nilmtk_elecmeter_data()
+        strat = ElecmeterActivationAppender(data=elecmeter)
+        ctx = ActivationExtensionContext(strategy=strat)
 
-#         assert type(elecmeter) == nilmtk.ElecMeter
+        assert hasattr(ctx.strategy, "extend") == True
 
-#         strat = ElecmeterActivationAppender(data=elecmeter)
-#         ctx = ActivationExtensionContext(strategy=strat)
+        extended = ctx.extend(num_samples=TEST_NUM_SAMPLES)
 
-#         assert hasattr(ctx.strategy, "extend") == True
-
-#         extended = ctx.extend(num_samples=TEST_NUM_SAMPLES)
-
-#         assert len(extended) == len(elecmeter.power_series_all_data()) + TEST_NUM_SAMPLES
+        assert len(extended) == len(elecmeter.power_series_all_data()) + TEST_NUM_SAMPLES
 
 
 @pytest.mark.parametrize(
         "dummy_data, mode, full_num_samples, extras",
         [(create_test_nilmtk_elecmeter_data(), None, 200000, {"interval" : 10}),
+         (create_test_nilmtk_elecmeter_data(), "appender", 200000, {"interval" : 10}),
+         (create_test_nilmtk_elecmeter_data(), "randomizer", 200000, {"interval" : 10}),
+         (create_test_nilmtk_elecmeter_data(), "randomizer", 200000, {"interval" : 1000}),
          (create_test_nilmtk_elecmeter_data(), None, 200000, {})]
 )
 def test_activation_extension_interface_function(dummy_data, mode, full_num_samples, extras):
