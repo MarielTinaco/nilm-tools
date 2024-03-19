@@ -41,6 +41,8 @@ def test_elecmeter_activation_extension():
          (create_test_nilmtk_elecmeter_data(), "appender", 200000, {"interval" : 10}),
          (create_test_nilmtk_elecmeter_data(), "randomizer", 200000, {"interval" : 10}),
          (create_test_nilmtk_elecmeter_data(), "randomizer", 200000, {"interval" : 1000}),
+         (create_test_nilmtk_elecmeter_data(), "rightpadder", 200000, {"padding_mode" : 0}),
+         (create_test_nilmtk_elecmeter_data(), "rightpadder", 200000, {"padding_mode" : lambda : random.randint(1, 4)}),
          (create_test_nilmtk_elecmeter_data(), None, 200000, {})]
 )
 def test_activation_extension_interface_function(dummy_data, mode, full_num_samples, extras):
