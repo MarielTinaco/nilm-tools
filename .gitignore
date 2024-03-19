@@ -166,3 +166,5 @@ src/unetnilm/output/*
 
 # COS ALGO NILM
 profiles/
+results/
+logs/
