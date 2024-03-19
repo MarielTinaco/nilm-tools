@@ -50,15 +50,16 @@ class ElecmeterActivationAppender:
         def __init__(self, data : nilmtk.ElecMeter):
                 self.data = data
 
-        def _generator(self, activations, interval=0):
-                while True: yield np.hstack([random.choice(activations).values, np.zeros(interval)])
+        def _generator(self, activations, interval_func : Callable):
+                while True: yield np.hstack([random.choice(activations).values, np.zeros(interval_func())])
 
-        def extend(self, num_samples = 0, interval=0) -> np.ndarray:
+        def extend(self, num_samples = 0, interval : Union[Callable, int] = 0) -> np.ndarray:
                 power_series = self.data.power_series_all_data()
+                interval_func = interval if isinstance(interval, Callable) else lambda : interval
                 activation_stack = []
                 accumulated_length = 0
 
-                for activation in self._generator(self.data.get_activations(), interval=interval or ()):
+                for activation in self._generator(self.data.get_activations(), interval_func=interval_func):
                         if accumulated_length > num_samples:
                                 break
                         activation_stack.append(activation)
