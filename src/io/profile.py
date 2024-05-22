@@ -52,6 +52,9 @@ class DatasetProfile:
 
                 return cls(parent_dir, handler, dataset_name, metadata, mode, full_path=profile_path)
 
+        def __repr__(self) -> str:
+                return f"""Full path: {self.full_path.resolve()}
+                """
 
 class ProfileHandlerContext(object):
 
