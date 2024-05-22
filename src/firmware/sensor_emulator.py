@@ -19,6 +19,7 @@ class SensorEmulator():
         )
 
         self.row_idx = 0
+        self.col_idx = 0
         self.num_rows = 0
         self.raw_data = []
         self.data_bytes = []
@@ -36,6 +37,16 @@ class SensorEmulator():
         if packet_id == 'init':
             packet = bytes()
             packet += (bytes.fromhex("AA01"))
+            packet += (bytes.fromhex("{:04x}".format(0)))
+            packet += (bytes.fromhex("DD01"))
+        elif packet_id == 'infer':
+            packet = bytes()
+            packet += (bytes.fromhex("AA03"))
+            packet += (bytes.fromhex("{:04x}".format(0)))
+            packet += (bytes.fromhex("DD01"))
+        elif packet_id == 'get_output':
+            packet = bytes()
+            packet += (bytes.fromhex("AA04"))
             packet += (bytes.fromhex("{:04x}".format(0)))
             packet += (bytes.fromhex("DD01"))
         else: 
@@ -81,7 +92,7 @@ class SensorEmulator():
         print("[{0}]".format(tag), end=' ')
         print(data)
     
-    def emulate(self):
+    def emulate(self, debug_acks=False):
         ret = 0
         count = 1
 
@@ -91,22 +102,43 @@ class SensorEmulator():
         if ret:
             self.log("HOS", "Timed out")
             return ret
-        self.log("DEV","{0}'ed".format(self.read_data.decode()))
-
         
+        if debug_acks:
+            self.log("DEV","{0}'ed".format(self.read_data.decode()))
+        else:
+            self.log("HOS","Connected")
+
         while (self.row_idx < self.num_rows):
-            self.log("HOS", "Sending input window {0}".format(count))
+            self.log("HOS", "Sending input data {0}".format(count))
             time.sleep(1)
             self.send()
             time.sleep(1)
-            self.wait(["ACK", "NAK"], num_bytes=3)
+            ret = self.wait(["ACK", "NAK"], num_bytes=3)
             if ret:
                 self.log("HOS", "Timed out")
                 return ret
+            if debug_acks:
+                self.log("DEV","{0}'ed".format(self.read_data.decode()))
 
-            self.log("DEV", "{0}'ed".format(self.read_data.decode()))
             time.sleep(1)
-            self.recv(100)
+            self.log("HOS", "Starting inference.")
+            time.sleep(1)
+            self.send('infer')
+            time.sleep(0.5)
+            ret = self.wait(["ACK", "NAK"], num_bytes=3)
+            if ret:
+                self.log("HOS", "Timed out")
+                return ret
+            if debug_acks:
+                self.log("DEV","{0}'ed".format(self.read_data.decode()))
+
+            time.sleep(0.5)
+            self.log("HOS", "Getting predictions.")
+            time.sleep(0.5)
+            self.send('get_output')
+            time.sleep(1)
+            self.recv(1000)
+            time.sleep(1)
             self.log("DEV", "Prediction: {0}".format(self.read_data.decode()))
             self.row_idx += 1
             count += 1
@@ -114,5 +146,6 @@ class SensorEmulator():
         return 0
 
 if __name__=="__main__":
-    emulator = SensorEmulator("COM7", 115200, "./test.csv")
+    emulator = SensorEmulator("COM7", 115200, "./test2.csv")
     emulator.emulate()
+
