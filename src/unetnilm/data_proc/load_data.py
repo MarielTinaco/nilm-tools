@@ -114,7 +114,7 @@ def pre_proc_ukdale(data_type, window):
     np.save(str(save_path) + "/targets.npy", targets)
     np.save(str(save_path) + "/states.npy", states)
 
-def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building : int = 1):
+def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building : int = 1, norm = 0): #normalization
     targets = []
     states = [] 
     dataset = nilmtk.DataSet(pathsman.UKDALE_H5_PATH)
@@ -124,27 +124,39 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
             "window" : 50,
             "mean" : float(dataset.buildings[building].elec["fridge"].power_series_all_data().mean()),
             "std" : float(dataset.buildings[building].elec["fridge"].power_series_all_data().std()),
+            "min" : float(dataset.buildings[building].elec["fridge"].power_series_all_data().min()),
+            "max" : float(dataset.buildings[building].elec["fridge"].power_series_all_data().max())
         },
         "washer dryer" : {
             "window" : 50,
             "mean" : float(dataset.buildings[building].elec["washer dryer"].power_series_all_data().mean()),
-            "std" : float(dataset.buildings[building].elec["washer dryer"].power_series_all_data().std())
+            "std" : float(dataset.buildings[building].elec["washer dryer"].power_series_all_data().std()),
+            "min" : float(dataset.buildings[building].elec["washer dryer"].power_series_all_data().min()),
+            "max" : float(dataset.buildings[building].elec["washer dryer"].power_series_all_data().max())
         },
         "kettle" : {
             "window" : 10,
             "mean" : float(dataset.buildings[building].elec["kettle"].power_series_all_data().mean()),
-            "std" : float(dataset.buildings[building].elec["kettle"].power_series_all_data().std())
+            "std" : float(dataset.buildings[building].elec["kettle"].power_series_all_data().std()),
+            "min" : float(dataset.buildings[building].elec["kettle"].power_series_all_data().min()),
+            "max" : float(dataset.buildings[building].elec["kettle"].power_series_all_data().max())
         },
         "dish washer" : {
             "window" : 50,
             "mean" : float(dataset.buildings[building].elec["dish washer"].power_series_all_data().mean()),
-            "std" : float(dataset.buildings[building].elec["dish washer"].power_series_all_data().std())
+            "std" : float(dataset.buildings[building].elec["dish washer"].power_series_all_data().std()),
+            "min" : float(dataset.buildings[building].elec["dish washer"].power_series_all_data().min()),
+            "max" : float(dataset.buildings[building].elec["dish washer"].power_series_all_data().max())
         },
         "microwave" : {
             "window" : 10,
             "mean" : float(dataset.buildings[building].elec["microwave"].power_series_all_data().mean()),
-            "std" : float(dataset.buildings[building].elec["microwave"].power_series_all_data().std())
+            "std" : float(dataset.buildings[building].elec["microwave"].power_series_all_data().std()),
+            "min" : float(dataset.buildings[building].elec["microwave"].power_series_all_data().min()),
+            "max" : float(dataset.buildings[building].elec["microwave"].power_series_all_data().max())
         }
+
+        ##another entry for min max, This is done
     }
 
     with open('src/unetnilm/io/appliance_data.json', 'w') as infile:
@@ -164,20 +176,30 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
     reduced_power_series_list = []
 
     for app in appliance.keys():
-            power_series = power_elec[app].power_series_all_data()
-            reduced_power_series = power_series[power_series.index.get_indexer(main_index, method="nearest")]
-            reduced_power_series_list.append(reduced_power_series)
-            meter = quantile_filter(appliance[app]["window"], reduced_power_series, p=50)
-            state = binarization(meter, power_elec[app].on_power_threshold())
+        power_series = power_elec[app].power_series_all_data()
+        reduced_power_series = power_series[power_series.index.get_indexer(main_index, method="nearest")]
+        reduced_power_series_list.append(reduced_power_series)
+        meter = quantile_filter(appliance[app]["window"], reduced_power_series, p=50)
+        state = binarization(meter, power_elec[app].on_power_threshold())
+        if norm==0:
+            meter = (meter - appliance[app]['min'])/(appliance[app]['max'] - appliance[app]['min'])
+        elif norm==1:
+            meter = 2*((meter - appliance[app]['min'])/(appliance[app]['max'] - appliance[app]['min']))-1
+        else:
             meter = (meter - appliance[app]['mean'])/appliance[app]['std']
-            targets.append(meter)
-            states.append(state)
+        targets.append(meter)
+        states.append(state)
 
     # mains_series = power_elec.mains().power_series_all_data()
     # reduced_main_power_series = mains_series[mains_series.index.get_indexer(main_index, method="nearest")]
 
+    # for standardization
     mains_mean = dataset.buildings[building].elec.mains().power_series_all_data().mean()
     mains_std = dataset.buildings[building].elec.mains().power_series_all_data().std()
+
+    # for normalization
+    mains_max = dataset.buildings[building].elec.mains().power_series_all_data().max()
+    mains_min = dataset.buildings[building].elec.mains().power_series_all_data().min()
 
     mains_series = reduced_power_series_list[0]
     for i in reduced_power_series_list[1:]:
@@ -195,8 +217,15 @@ def pre_proc_ukdale_nilmtk(data_type, timeframe : Union[Tuple, Dict], building :
     mains = np.where(mains < mains_denoise, mains_denoise, mains)
     mains = quantile_filter(10, mains, 50)
     
-    norm_mains_denoise = (mains_denoise - mains_denoise.mean()) / mains_denoise.std()
-    norm_mains = (mains - mains_mean) / mains_std
+    if norm==0:
+        norm_mains_denoise = (mains_denoise - mains_denoise.min())/(mains_denoise.max() - mains_denoise.min())
+        norm_mains = (mains - mains_min)/(mains_max - mains_min)
+    elif norm==1:
+        norm_mains_denoise = 2*((mains_denoise - mains_denoise.min())/(mains_denoise.max() - mains_denoise.min()))-1
+        norm_mains = 2*((mains - mains_min)/(mains_max - mains_min))-1
+    else:
+        norm_mains_denoise = (mains_denoise - mains_denoise.mean()) / mains_denoise.std()
+        norm_mains = (mains - mains_mean) / mains_std
 
     states = np.stack(states).T
     targets = np.stack(targets).T

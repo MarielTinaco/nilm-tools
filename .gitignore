@@ -161,3 +161,10 @@ cython_debug/
 
 # NILM Datasets
 data/
+
+src/unetnilm/output/*
+
+# COS ALGO NILM
+profiles/
+results/
+logs/

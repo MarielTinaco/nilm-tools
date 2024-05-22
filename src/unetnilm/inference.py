@@ -4,7 +4,8 @@ import pytorch_lightning as pl
 
 from net.model_pl import NILMnet
 
-ckpt_path = "C:/Users/MTinaco/Dev/Solutions/cos-algo-nilm/src/unetnilm/infer/checkpoints/ukdale_UNETNiLM_quantiles_multi-appliance/epoch=3.ckpt"
+ckpt_path = "C:/Users/MTinaco/Dev/Solutions/cos-algo-nilm/src/unetnilm/output/2024-02-22_204557071821/checkpoints/ukdale_UNETNiLM_quantiles_multi-appliance/unetnilm-epoch=00-val_F1=0.99.ckpt"
+
 if __name__ == "__main__": 
         
         appliance = {
