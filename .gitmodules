@@ -4,3 +4,6 @@
 [submodule "nilm_metadata"]
 	path = nilm_metadata
 	url = https://github.com/nilmtk/nilm_metadata/
+[submodule "src/firmware/max78000/CMSIS-NN"]
+	path = src/firmware/max78000/CMSIS-NN
+	url = https://github.com/ARM-software/CMSIS-NN.git

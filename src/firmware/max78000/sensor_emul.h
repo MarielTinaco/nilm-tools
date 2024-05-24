@@ -20,6 +20,7 @@
 
 /* Emulator params */
 #define EMUL_INPUT_SIZE					1
+#define EMUL_FIFO_BITLEN				32					
 
 /* Emulator commands */
 #define EMUL_CMD_INIT					0xAA01
@@ -30,7 +31,12 @@
 
 struct sensor_emul_ctx {
 	size_t fifo_size;
+
+	#if (EMUL_FIFO_BITLEN == 8)
 	uint8_t * fifo;
+	#else
+	uint32_t * fifo;
+	#endif
 
 	int (*init)(void);
 	int (*load_input)(void);
@@ -48,7 +54,11 @@ extern volatile uint8_t sensor_emul_irq_flag;
 int sensor_emul_init(struct sensor_emul_ctx * ctx);
 int sensor_emul_write(const char *data, ...);
 int sensor_emul_reset(void);
+#if (EMUL_FIFO_BITLEN == 8)
 int sensor_emul_parse(uint8_t *buf, size_t size);
+#else
+int sensor_emul_parse(uint32_t *buf, size_t size);
+#endif
 int sensor_emul_run(struct sensor_emul_ctx * ctx);
 
 #endif

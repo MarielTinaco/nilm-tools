@@ -6,7 +6,7 @@
 **************************************************************************************************/
 
 /*
- * This header file was automatically @generated for the nilm_autoencode_regress network from a template.
+ * This header file was automatically @generated for the nilm_seq2point_regress network from a template.
  * Please do not edit; instead, edit the template and regenerate.
  */
 
@@ -23,19 +23,20 @@ typedef int16_t q15_t;
 
 /*
   SUMMARY OF OPS
-  Hardware: 30,119 ops (29,728 macc; 391 comp; 0 add; 0 mul; 0 bitwise)
-    Layer 0: 12,928 ops (12,800 macc; 128 comp; 0 add; 0 mul; 0 bitwise)
-    Layer 1: 8,256 ops (8,192 macc; 64 comp; 0 add; 0 mul; 0 bitwise)
-    Layer 2: 2,080 ops (2,048 macc; 32 comp; 0 add; 0 mul; 0 bitwise)
-    Layer 3: 132 ops (128 macc; 4 comp; 0 add; 0 mul; 0 bitwise)
-    Layer 4: 160 ops (128 macc; 32 comp; 0 add; 0 mul; 0 bitwise)
-    Layer 5 (de_lin2): 3,168 ops (3,072 macc; 96 comp; 0 add; 0 mul; 0 bitwise)
-    Layer 6: 970 ops (960 macc; 10 comp; 0 add; 0 mul; 0 bitwise)
-    Layer 7: 2,425 ops (2,400 macc; 25 comp; 0 add; 0 mul; 0 bitwise)
+  Hardware: 1,541,072 ops (1,526,848 macc; 13,584 comp; 640 add; 0 mul; 0 bitwise)
+    Layer 0: 29,440 ops (26,496 macc; 2,944 comp; 0 add; 0 mul; 0 bitwise)
+    Layer 1: 699,040 ops (696,320 macc; 2,720 comp; 0 add; 0 mul; 0 bitwise)
+    Layer 2: 345,456 ops (340,992 macc; 4,464 comp; 0 add; 0 mul; 0 bitwise)
+    Layer 3: 217,664 ops (215,040 macc; 2,624 comp; 0 add; 0 mul; 0 bitwise)
+    Layer 4: 205,440 ops (204,800 macc; 640 comp; 0 add; 0 mul; 0 bitwise)
+    Layer 5 (conv6): 33,536 ops (32,768 macc; 128 comp; 640 add; 0 mul; 0 bitwise)
+    Layer 6 (mlp1): 8,256 ops (8,192 macc; 64 comp; 0 add; 0 mul; 0 bitwise)
+    Layer 7: 640 ops (640 macc; 0 comp; 0 add; 0 mul; 0 bitwise)
+    Layer 8: 1,600 ops (1,600 macc; 0 comp; 0 add; 0 mul; 0 bitwise)
 
   RESOURCE USAGE
-  Weight memory: 29,728 bytes out of 442,368 bytes total (6.7%)
-  Bias memory:   352 bytes out of 2,048 bytes total (17.2%)
+  Weight memory: 72,160 bytes out of 442,368 bytes total (16.3%)
+  Bias memory:   371 bytes out of 2,048 bytes total (18.1%)
 */
 
 /* Number of outputs for this network */
@@ -94,9 +95,7 @@ int cnn_stop(void);
 int cnn_continue(void);
 
 /* Unload results from accelerator */
-int cnn_unload(int8_t *out_buf);
-
-int cnn_peek(uint32_t address, uint32_t offset, int num_peeks, int8_t * out_buf);
+int cnn_unload(int8_t *states, int8_t *quantiles);
 
 /* Turn on the boost circuit */
 int cnn_boost_enable(mxc_gpio_regs_t *port, uint32_t pin);

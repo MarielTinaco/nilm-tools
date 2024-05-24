@@ -10,3 +10,6 @@
 # Add your config here!
 
 DEBUG=1
+
+IPATH += ./CMSIS-NN/Include ./CMSIS-NN/Include/Internal
+VPATH += ./CMSIS-NN/Source/SoftmaxFunctions ./CMSIS-NN/Source/ReshapeFunctions

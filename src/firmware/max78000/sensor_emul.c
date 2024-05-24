@@ -21,6 +21,7 @@ static uint16_t to_be16(uint8_t * buf)
 	return buf[1] | ((uint16_t)buf[0] << 8);
 }
 
+#if (EMUL_FIFO_BITLEN == 8)
 static void update_fifo(uint8_t * buf, size_t size, uint8_t value) 
 {
 	size_t i;
@@ -30,6 +31,17 @@ static void update_fifo(uint8_t * buf, size_t size, uint8_t value)
 	
 	buf[size - 1] = value;
 }
+#else
+static void update_fifo(uint32_t * buf, size_t size, uint8_t value) 
+{
+	size_t i;
+
+	for (i = 1; i < size; i++) 
+		buf[i-1] = buf[i];
+	
+	buf[size - 1] = value;
+}
+#endif
 
 int sensor_emul_init(struct sensor_emul_ctx * ctx) 
 {
@@ -128,6 +140,7 @@ int sensor_emul_reset(void)
 	return 0;
 }
 
+#if (EMUL_FIFO_BITLEN == 8)
 int sensor_emul_parse(uint8_t *buf, size_t size)
 {
 	int i;
@@ -142,7 +155,12 @@ int sensor_emul_parse(uint8_t *buf, size_t size)
 			return 0;
 
 		if(sensor_emul_uart_rx[i] == ',' || sensor_emul_uart_rx[i] == 0xdd) {
+			#if (EMUL_FIFO_BITLEN == 8)
 			update_fifo(buf, size, (uint8_t)atoi(token));
+			#else
+			update_fifo(buf, size, (uint32_t)atoi(token));
+			#endif
+
 			memset(token, 0, 5);
 			count++;
 
@@ -154,6 +172,39 @@ int sensor_emul_parse(uint8_t *buf, size_t size)
 
 	return 0;
 }
+#else
+int sensor_emul_parse(uint32_t *buf, size_t size)
+{
+	int i;
+	size_t count = 0;
+	size_t len;
+	char token[5] = {0};
+
+	len = to_be16(&sensor_emul_uart_rx[2]);
+
+	for (i = 4; i <= len + 6; i++) {
+		if (count >= EMUL_INPUT_SIZE)
+			return 0;
+
+		if(sensor_emul_uart_rx[i] == ',' || sensor_emul_uart_rx[i] == 0xdd) {
+			#if (EMUL_FIFO_BITLEN == 8)
+			update_fifo(buf, size, (uint8_t)atoi(token));
+			#else
+			update_fifo(buf, size, (uint32_t)atoi(token));
+			#endif
+
+			memset(token, 0, 5);
+			count++;
+
+			if (sensor_emul_uart_rx[i] == 0xdd && sensor_emul_uart_rx[i] == 0x01)
+				return 0;
+		} else 
+			strncat(token, (const char *)&sensor_emul_uart_rx[i], 1);
+	}
+
+	return 0;
+}
+#endif
 
 int sensor_emul_run(struct sensor_emul_ctx * ctx)
 {
