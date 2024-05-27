@@ -14,12 +14,12 @@
 #define UART_IRQ						MXC_UART_GET_IRQ(UART_DEV_NUM)
 #define UART_BAUDRATE					115200
 #define UART_TX_LEN						1000
-#define UART_RX_LEN						250
+#define UART_RX_LEN						500
 #define UART_RX_DELAY					200     /* Delay set for async transaction to complete */
 #define UART_USE_CONSOLE				0       /* Disable to use custom serial */
 
 /* Emulator params */
-#define EMUL_INPUT_SIZE					1
+#define EMUL_EVAL_MODE					1
 #define EMUL_FIFO_BITLEN				32					
 
 /* Emulator commands */
@@ -28,6 +28,12 @@
 #define EMUL_CMD_INFER					0xAA03
 #define EMUL_CMD_GET_PREDS				0xAA04
 #define EMUL_CMD_EXIT					0xAA05
+
+#if (EMUL_EVAL_MODE)
+#define EMUL_INPUT_SIZE					100
+#else
+#define EMUL_INPUT_SIZE					1
+#endif
 
 struct sensor_emul_ctx {
 	size_t fifo_size;

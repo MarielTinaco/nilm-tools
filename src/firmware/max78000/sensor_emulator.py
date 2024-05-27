@@ -2,6 +2,7 @@ import datetime
 import time
 import serial
 import csv
+import multiprocessing
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -19,20 +20,22 @@ class SensorEmulator():
                  serial_port,
                  serial_baudrate,
                  aggregated_power_csv,
+                 row_start = 0,
                  buffered = True,
-                 streaming_mode = True):
+                 liveplots = False):
         self.serial = serial.Serial(
             port=serial_port,
             baudrate=serial_baudrate,
         )
-
-        self.row_idx = 0
         self.col_idx = 0
         self.num_rows = 0
+        self.row_idx = row_start
         self.buffered = buffered
+        self.liveplots = liveplots
         self.raw_data = []
         self.data_bytes = []
         self.read_data = bytes()
+        self.output = [0 for _ in range(10)]
         if self.buffered:
             self.states = np.zeros((5, 1000))
             self.rms = np.zeros((5, 1000))
@@ -96,6 +99,8 @@ class SensorEmulator():
                 self.raw_data.append(list(i))
                 self.data_bytes.append("".join(str(j) + "," for j in i))
                 self.num_rows += 1
+            
+            assert self.row_idx < self.num_rows
     
     def build_packet(self, packet_id = None):
         if packet_id == 'init':
@@ -122,14 +127,16 @@ class SensorEmulator():
 
         return packet
     
-    def send(self, packet_id = None, text = None):
+    def send(self, packet_id = None, text = None, delay = 0.2):
         if text is not None:
-            return self.serial.write(text.encode())
+            self.serial.write(text.encode())
         if self.row_idx < self.num_rows:
-            return self.serial.write(self.build_packet(packet_id=packet_id))
+            self.serial.write(self.build_packet(packet_id=packet_id))
+        time.sleep(delay)
     
-    def recv(self, num_bytes = 1):
+    def recv(self, num_bytes = 1, delay = 0.2):
         self.read_data = self.serial.read(num_bytes)
+        time.sleep(delay)
         return self.read_data
 
     def wait(self, expected_bytes, num_bytes = 4, timeout = 10, serial_rx_timeout = 1):
@@ -152,9 +159,11 @@ class SensorEmulator():
 
         return -2
     
-    def update_and_show(self, output_tensor: list):
-        states = np.array([output_tensor[:5]])
-        rms = np.array([output_tensor[5:]])
+    def update_and_show(self):
+        assert len(self.output) == 10
+
+        states = np.array([self.output[:5]])
+        rms = np.array([self.output[5:]])
 
         self.states = np.concatenate((self.states, states.T), axis = 1)
         self.rms = np.concatenate((self.rms, rms.T), axis = 1)
@@ -182,7 +191,6 @@ class SensorEmulator():
     
     def emulate(self, debug_acks=False):
         ret = 0
-        count = 1
 
         self.log("HOS","Testing comms with device...")
         self.send(packet_id='init')
@@ -197,10 +205,8 @@ class SensorEmulator():
             self.log("HOS","Connected")
 
         while (self.row_idx < self.num_rows):
-            self.log("HOS", "Sending input data {0}".format(count))
-            time.sleep(1)
-            self.send()
-            time.sleep(1)
+            self.log("HOS", "Sending input row {0}".format(self.row_idx))
+            self.send(delay=0.5)
             ret = self.wait(["ACK", "NAK"], num_bytes=3)
             if ret:
                 self.log("HOS", "Timed out")
@@ -208,11 +214,8 @@ class SensorEmulator():
             if debug_acks:
                 self.log("DEV","{0}'ed".format(self.read_data.decode()))
 
-            time.sleep(1)
             self.log("HOS", "Starting inference.")
-            time.sleep(1)
-            self.send('infer')
-            time.sleep(0.5)
+            self.send('infer', delay=0)
             ret = self.wait(["ACK", "NAK"], num_bytes=3)
             if ret:
                 self.log("HOS", "Timed out")
@@ -220,23 +223,24 @@ class SensorEmulator():
             if debug_acks:
                 self.log("DEV","{0}'ed".format(self.read_data.decode()))
 
-            time.sleep(0.5)
             self.log("HOS", "Getting predictions.")
-            time.sleep(0.5)
-            self.send('get_output')
-            time.sleep(1)
+            self.send('get_output', delay=0)
             self.recv(1000)
-            time.sleep(1)
             self.log("DEV", "Prediction: {0}".format(self.read_data.decode()))
 
-            output = [int(i) for i in self.read_data.decode().replace(' ','').split(',') if i]
-            self.update_and_show(output)
+            self.output = [int(i) for i in self.read_data.decode().replace(' ','').split(',') if i]
+            
+            if self.liveplots:
+                self.update_and_show()
 
             self.row_idx += 1
-            count += 1
         return 0
 
 if __name__=="__main__":
-    emulator = SensorEmulator("COM7", 115200, "./test2.csv")
+    emulator = SensorEmulator("COM7", 115200, ".dataset/test_set.csv", row_start=0)
     emulator.emulate()
+    
+
+
+
 

@@ -155,14 +155,14 @@ int sensor_emul_parse(uint8_t *buf, size_t size)
 			return 0;
 
 		if(sensor_emul_uart_rx[i] == ',' || sensor_emul_uart_rx[i] == 0xdd) {
-			#if (EMUL_FIFO_BITLEN == 8)
-			update_fifo(buf, size, (uint8_t)atoi(token));
+			#if (EMUL_EVAL_MODE == 1)
+			buf[count] = (uint8_t)atoi(token)
 			#else
-			update_fifo(buf, size, (uint32_t)atoi(token));
+			update_fifo(buf, size, (uint8_t)atoi(token));
 			#endif
 
-			memset(token, 0, 5);
 			count++;
+			memset(token, 0, 5);
 
 			if (sensor_emul_uart_rx[i] == 0xdd && sensor_emul_uart_rx[i] == 0x01)
 				return 0;
@@ -187,14 +187,14 @@ int sensor_emul_parse(uint32_t *buf, size_t size)
 			return 0;
 
 		if(sensor_emul_uart_rx[i] == ',' || sensor_emul_uart_rx[i] == 0xdd) {
-			#if (EMUL_FIFO_BITLEN == 8)
-			update_fifo(buf, size, (uint8_t)atoi(token));
+			#if (EMUL_EVAL_MODE == 1)
+			buf[count] = (uint32_t)atoi(token);
 			#else
 			update_fifo(buf, size, (uint32_t)atoi(token));
 			#endif
 
-			memset(token, 0, 5);
 			count++;
+			memset(token, 0, 5);
 
 			if (sensor_emul_uart_rx[i] == 0xdd && sensor_emul_uart_rx[i] == 0x01)
 				return 0;
