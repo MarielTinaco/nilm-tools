@@ -15,7 +15,7 @@ Emulates sensor via UART. Should work with time-series data. Multi-dimensional d
     - Pyserial `pip install pyserial`
 
 ## Run
-- To run, flash first the firmware to MAX78000FTHR. (Via vscode, press Ctrl+Shift+B, then flash)
+- To run, flash first the firmware to MAX78000FTHR. (Via vscode, press Ctrl+Shift+B, then flash or Drag and Drop latest hex file in the release directory)
 - Restart device
 - Run `python sensor_emulator.py`
 

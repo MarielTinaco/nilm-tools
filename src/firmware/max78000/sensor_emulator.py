@@ -21,7 +21,8 @@ class SensorEmulator():
                  serial_baudrate,
                  aggregated_power_csv,
                  row_start = 0,
-                 buffered = True,
+                 limit = 100,
+                 buffer_size = 100,
                  liveplots = False):
         self.serial = serial.Serial(
             port=serial_port,
@@ -30,67 +31,18 @@ class SensorEmulator():
         self.col_idx = 0
         self.num_rows = 0
         self.row_idx = row_start
-        self.buffered = buffered
+        self.limit = limit
+        self.buffer_size = buffer_size
         self.liveplots = liveplots
         self.raw_data = []
         self.data_bytes = []
         self.read_data = bytes()
         self.output = [0 for _ in range(10)]
-        if self.buffered:
-            self.states = np.zeros((5, 1000))
-            self.rms = np.zeros((5, 1000))
 
-            self.fig, self.axes = plt.subplots(nrows=5, ncols=2)
-
-            plt.sca(self.axes[0,0])
-            self.axes[0,0].set_ylabel("State")
-            self.axes[0,0].set_xlabel("Time")
-            self.axes[0,0].set_title('Appliance 0') 
-
-            plt.sca(self.axes[1,0])
-            self.axes[1,0].set_ylabel("State")
-            self.axes[1,0].set_xlabel("Time")
-            self.axes[1,0].set_title('Appliance 1') 
-
-            plt.sca(self.axes[2,0])
-            self.axes[2,0].set_ylabel("State")
-            self.axes[2,0].set_xlabel("Time")
-            self.axes[2,0].set_title('Appliance 2') 
-
-            plt.sca(self.axes[3,0])
-            self.axes[3,0].set_ylabel("State")
-            self.axes[3,0].set_xlabel("Time")
-            self.axes[3,0].set_title('Appliance 3') 
-
-            plt.sca(self.axes[4,0])
-            self.axes[4,0].set_ylabel("State")
-            self.axes[4,0].set_xlabel("Time")
-            self.axes[4,0].set_title('Appliance 4') 
-
-            plt.sca(self.axes[0,1])
-            self.axes[0,1].set_ylabel("RMS")
-            self.axes[0,1].set_xlabel("Time")
-            self.axes[0,1].set_title('Appliance 0') 
-
-            plt.sca(self.axes[1,1])
-            self.axes[1,1].set_ylabel("RMS")
-            self.axes[1,1].set_xlabel("Time")
-            self.axes[1,1].set_title('Appliance 1') 
-
-            plt.sca(self.axes[2,1])
-            self.axes[2,1].set_ylabel("RMS")
-            self.axes[2,1].set_xlabel("Time")
-            self.axes[2,1].set_title('Appliance 2') 
-
-            plt.sca(self.axes[3,1])
-            self.axes[3,1].set_ylabel("RMS")
-            self.axes[3,1].set_xlabel("Time")
-            self.axes[3,1].set_title('Appliance 3') 
-
-            plt.sca(self.axes[4,1])
-            self.axes[4,1].set_ylabel("RMS")
-            self.axes[4,1].set_xlabel("Time")
-            self.axes[4,1].set_title('Appliance 4') 
+        self.states = np.zeros((5, self.buffer_size))
+        self.rms = np.zeros((5, self.buffer_size))
+        if self.buffer_size > 0:
+           self.plot_init()
 
         with open(aggregated_power_csv, 'r') as f:
             csv_reader = csv.reader(f)
@@ -101,6 +53,92 @@ class SensorEmulator():
                 self.num_rows += 1
             
             assert self.row_idx < self.num_rows
+
+    def plot_init(self):
+        self.fig, self.axes = plt.subplots(nrows=5, ncols=2)
+        plt.sca(self.axes[0,0])
+        self.axes[0,0].set_ylabel("State")
+        self.axes[0,0].set_xlabel("Time")
+        self.axes[0,0].set_title('Appliance 0') 
+
+        plt.sca(self.axes[1,0])
+        self.axes[1,0].set_ylabel("State")
+        self.axes[1,0].set_xlabel("Time")
+        self.axes[1,0].set_title('Appliance 1') 
+
+        plt.sca(self.axes[2,0])
+        self.axes[2,0].set_ylabel("State")
+        self.axes[2,0].set_xlabel("Time")
+        self.axes[2,0].set_title('Appliance 2') 
+
+        plt.sca(self.axes[3,0])
+        self.axes[3,0].set_ylabel("State")
+        self.axes[3,0].set_xlabel("Time")
+        self.axes[3,0].set_title('Appliance 3') 
+
+        plt.sca(self.axes[4,0])
+        self.axes[4,0].set_ylabel("State")
+        self.axes[4,0].set_xlabel("Time")
+        self.axes[4,0].set_title('Appliance 4') 
+
+        plt.sca(self.axes[0,1])
+        self.axes[0,1].set_ylabel("RMS")
+        self.axes[0,1].set_xlabel("Time")
+        self.axes[0,1].set_title('Appliance 0') 
+
+        plt.sca(self.axes[1,1])
+        self.axes[1,1].set_ylabel("RMS")
+        self.axes[1,1].set_xlabel("Time")
+        self.axes[1,1].set_title('Appliance 1') 
+
+        plt.sca(self.axes[2,1])
+        self.axes[2,1].set_ylabel("RMS")
+        self.axes[2,1].set_xlabel("Time")
+        self.axes[2,1].set_title('Appliance 2') 
+
+        plt.sca(self.axes[3,1])
+        self.axes[3,1].set_ylabel("RMS")
+        self.axes[3,1].set_xlabel("Time")
+        self.axes[3,1].set_title('Appliance 3') 
+
+        plt.sca(self.axes[4,1])
+        self.axes[4,1].set_ylabel("RMS")
+        self.axes[4,1].set_xlabel("Time")
+        self.axes[4,1].set_title('Appliance 4')
+
+    def plot_update_and_show(self, show=False):
+        assert len(self.output) == 10
+
+        states = np.array([self.output[:5]])
+        rms = np.array([self.output[5:]])
+
+        self.states = np.concatenate((self.states, states.T), axis = 1)
+        self.rms = np.concatenate((self.rms, rms.T), axis = 1)
+        self.states = np.delete(self.states, 0, 1)
+        self.rms = np.delete(self.rms, 0, 1)
+
+        tvec = np.linspace(0, self.buffer_size - 1, self.buffer_size)
+
+        self.axes[0,0].plot(tvec, self.states[0], c='b')
+        self.axes[1,0].plot(tvec, self.states[1], c='b')
+        self.axes[2,0].plot(tvec, self.states[2], c='b')
+        self.axes[3,0].plot(tvec, self.states[3], c='b')
+        self.axes[4,0].plot(tvec, self.states[4], c='b')
+        self.axes[0,1].plot(tvec, self.rms[0], c='b')
+        self.axes[1,1].plot(tvec, self.rms[1], c='b')
+        self.axes[2,1].plot(tvec, self.rms[2], c='b')
+        self.axes[3,1].plot(tvec, self.rms[3], c='b')
+        self.axes[4,1].plot(tvec, self.rms[4], c='b')
+
+        if show:
+            plt.show()
+        else:
+            plt.pause(0.1)
+
+    def plot_reshow(self):
+        plt.clf()
+        self.plot_init()
+        self.plot_update_and_show(True)
     
     def build_packet(self, packet_id = None):
         if packet_id == 'init':
@@ -159,32 +197,6 @@ class SensorEmulator():
 
         return -2
     
-    def update_and_show(self):
-        assert len(self.output) == 10
-
-        states = np.array([self.output[:5]])
-        rms = np.array([self.output[5:]])
-
-        self.states = np.concatenate((self.states, states.T), axis = 1)
-        self.rms = np.concatenate((self.rms, rms.T), axis = 1)
-        self.states = np.delete(self.states, 0, 1)
-        self.rms = np.delete(self.rms, 0, 1)
-
-        tvec = np.linspace(0, 999, 1000)
-
-        self.axes[0,0].plot(tvec, self.states[0])
-        self.axes[1,0].plot(tvec, self.states[1])
-        self.axes[2,0].plot(tvec, self.states[2])
-        self.axes[3,0].plot(tvec, self.states[3])
-        self.axes[4,0].plot(tvec, self.states[4])
-        self.axes[0,1].plot(tvec, self.rms[0])
-        self.axes[1,1].plot(tvec, self.rms[1])
-        self.axes[2,1].plot(tvec, self.rms[2])
-        self.axes[3,1].plot(tvec, self.rms[3])
-        self.axes[4,1].plot(tvec, self.rms[4])
-
-        plt.pause(0.1)
-    
     def log(self, tag, data):
         print("[{0}]".format(tag), end=' ')
         print(data)
@@ -204,7 +216,7 @@ class SensorEmulator():
         else:
             self.log("HOS","Connected")
 
-        while (self.row_idx < self.num_rows):
+        while (self.row_idx < self.num_rows and self.limit):
             self.log("HOS", "Sending input row {0}".format(self.row_idx))
             self.send(delay=0.5)
             ret = self.wait(["ACK", "NAK"], num_bytes=3)
@@ -231,16 +243,17 @@ class SensorEmulator():
             self.output = [int(i) for i in self.read_data.decode().replace(' ','').split(',') if i]
             
             if self.liveplots:
-                self.update_and_show()
+                self.plot_update_and_show()
 
             self.row_idx += 1
+            self.limit -= 1
+
         return 0
 
 if __name__=="__main__":
-    emulator = SensorEmulator("COM7", 115200, ".dataset/test_set.csv", row_start=0)
+    emulator = SensorEmulator("COM7", 115200, "./dataset/test_set.csv", limit=10, liveplots=True)
     emulator.emulate()
-    
-
+    emulator.plot_reshow()
 
 
 
