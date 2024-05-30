@@ -6,7 +6,6 @@
 #include "sensor_emul.h"
 
 mxc_uart_req_t sensor_emul_uart;
-uint32_t sensor_emul_input[EMUL_INPUT_SIZE];
 uint8_t sensor_emul_uart_tx[UART_TX_LEN];
 uint8_t sensor_emul_uart_rx[UART_RX_LEN];
 volatile uint8_t sensor_emul_irq_flag = 0;
@@ -17,14 +16,41 @@ void sensor_emul_irq_handler(void)
 	sensor_emul_irq_flag = 1;
 }
 
-static uint16_t to_be16(uint8_t *buf)
+static uint16_t to_be16(uint8_t * buf)
 {
 	return buf[1] | ((uint16_t)buf[0] << 8);
 }
 
-int sensor_emul_init(void) 
+#if (EMUL_FIFO_BITLEN == 8)
+static void update_fifo(uint8_t * buf, size_t size, uint8_t value) 
+{
+	size_t i;
+
+	for (i = 1; i < size; i++) 
+		buf[i-1] = buf[i];
+	
+	buf[size - 1] = value;
+}
+#else
+static void update_fifo(uint32_t * buf, size_t size, uint8_t value) 
+{
+	size_t i;
+
+	for (i = 1; i < size; i++) 
+		buf[i-1] = buf[i];
+	
+	buf[size - 1] = value;
+}
+#endif
+
+int sensor_emul_init(struct sensor_emul_ctx * ctx) 
 {
 	int ret;
+
+	if (ctx->fifo == NULL || ctx->fifo_size <= 0)
+		return -E_INVALID;
+
+	memset(ctx->fifo, 0, ctx->fifo_size);
 
 	sensor_emul_uart.uart = UART_DEV;
 	sensor_emul_uart.txData = sensor_emul_uart_tx;
@@ -114,10 +140,11 @@ int sensor_emul_reset(void)
 	return 0;
 }
 
-int sensor_emul_parse(uint32_t *buf)
+#if (EMUL_FIFO_BITLEN == 8)
+int sensor_emul_parse(uint8_t *buf, size_t size)
 {
 	int i;
-	uint32_t count = 0;
+	size_t count = 0;
 	size_t len;
 	char token[5] = {0};
 
@@ -128,7 +155,12 @@ int sensor_emul_parse(uint32_t *buf)
 			return 0;
 
 		if(sensor_emul_uart_rx[i] == ',' || sensor_emul_uart_rx[i] == 0xdd) {
-			buf[count] = atoi(token);
+			#if (EMUL_EVAL_MODE == 1)
+			buf[count] = (uint8_t)atoi(token)
+			#else
+			update_fifo(buf, size, (uint8_t)atoi(token));
+			#endif
+
 			count++;
 			memset(token, 0, 5);
 
@@ -140,8 +172,41 @@ int sensor_emul_parse(uint32_t *buf)
 
 	return 0;
 }
+#else
+int sensor_emul_parse(uint32_t *buf, size_t size)
+{
+	int i;
+	size_t count = 0;
+	size_t len;
+	char token[5] = {0};
 
-int sensor_emul_run(void)
+	len = to_be16(&sensor_emul_uart_rx[2]);
+
+	for (i = 4; i <= len + 6; i++) {
+		if (count >= EMUL_INPUT_SIZE)
+			return 0;
+
+		if(sensor_emul_uart_rx[i] == ',' || sensor_emul_uart_rx[i] == 0xdd) {
+			#if (EMUL_EVAL_MODE == 1)
+			buf[count] = (uint32_t)atoi(token);
+			#else
+			update_fifo(buf, size, (uint32_t)atoi(token));
+			#endif
+
+			count++;
+			memset(token, 0, 5);
+
+			if (sensor_emul_uart_rx[i] == 0xdd && sensor_emul_uart_rx[i] == 0x01)
+				return 0;
+		} else 
+			strncat(token, (const char *)&sensor_emul_uart_rx[i], 1);
+	}
+
+	return 0;
+}
+#endif
+
+int sensor_emul_run(struct sensor_emul_ctx * ctx)
 {
 	int ret = 0;
 	uint32_t command;
@@ -160,32 +225,47 @@ int sensor_emul_run(void)
 
 	switch (command) {
 		case EMUL_CMD_INIT:
+			ret = ctx->init();
+			if (ret)
+				goto reset;
+
 			sensor_emul_write("ACK");
 			break;
 		case EMUL_CMD_FETCH_DATA:
-			ret = sensor_emul_parse(sensor_emul_input);
-			if (ret) {
-				sensor_emul_write("NAK");
+			ret = sensor_emul_parse(ctx->fifo, ctx->fifo_size);
+			if (ret)
 				goto reset;
-			}
+
+			ret = ctx->load_input();
+			if (ret)
+				goto reset;
+			
 			sensor_emul_write("ACK");
+			break;
+		case EMUL_CMD_INFER:
+			ret = ctx->load_input();
+			if (ret)
+				goto reset;
 
-			/* TODO: insert inference here */
-			// idx = cnn_run();
-			// sensor_emul_write(classes[idx]);
+			ret = ctx->infer();
+			if (ret)
+				goto reset;
 
-			sensor_emul_write("TEST_PRED. Last values are %d %d %d %d %d",
-                              sensor_emul_input[EMUL_INPUT_SIZE - 5],
-                              sensor_emul_input[EMUL_INPUT_SIZE - 4],
-                              sensor_emul_input[EMUL_INPUT_SIZE - 3],
-                              sensor_emul_input[EMUL_INPUT_SIZE - 2],
-                              sensor_emul_input[EMUL_INPUT_SIZE - 1]);
+			sensor_emul_write("ACK");
+			break;
+		case EMUL_CMD_GET_PREDS:
+			ret = ctx->fetch_output();
+			if (ret)
+				goto reset;
 			break;
 		default:
 			break;
 	}
 
 	reset:
+	if (ret)
+		sensor_emul_write("NAK");
 	sensor_emul_reset();
+
 	return ret;
 }
