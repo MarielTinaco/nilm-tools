@@ -1,6 +1,6 @@
 
 
-from src.data_structures.sequence_mixer import *
+from adinilm.data_structures.sequence_mixer import *
 
 def test_random_sequence_mixer():
         rsm = RandomSequenceMixer([np.zeros(100), np.ones(100)],

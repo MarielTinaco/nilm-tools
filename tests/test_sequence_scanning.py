@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from src.data_processing.sequence_scanning import *
+from adinilm.data_processing.sequence_scanning import *
 
 
 def test_window_Sequence_scan_init():
