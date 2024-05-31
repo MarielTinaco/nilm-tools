@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import nilmtk
 
@@ -20,7 +21,10 @@ class NilmtkSubsectionExtractor:
                                                               resample=params["resample"]),
                               elec[app].on_power_threshold()]
                               for app in params["appliances"]]
-                self.df = pd.DataFrame(apps_data, index=params["appliances"], columns=["power_series", "on_power_threshold"])
+                apps_data.append([elec.mains().power_series_all_data(sample_period=params["sample_period"],
+                                                                     resample=params["resample"]),
+                                  np.NaN])
+                self.df = pd.DataFrame(apps_data, index=params["appliances"] + ["site meter"], columns=["power_series", "on_power_threshold"])
                 return self
 
         def to_pickle(self, filename):
@@ -48,3 +52,4 @@ if __name__ == "__main__":
                                                  "resample" : True})
 
         print(extr.df.loc["fridge freezer", "power_series"])
+        print(extr.df.loc["site meter", "on_power_threshold"])
