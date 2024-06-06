@@ -204,7 +204,7 @@ int session_exit(void)
 }
 
 int main(void) 
-	{
+{
 	struct sensor_emul_ctx ctx = {
 		.fifo_size = NILM_FIFO_SIZE,
 		.fifo = sensor_fifo,
