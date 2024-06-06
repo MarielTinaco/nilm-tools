@@ -7,3 +7,6 @@
 [submodule "src/firmware/max78000/CMSIS-NN"]
 	path = src/firmware/max78000/CMSIS-NN
 	url = https://github.com/ARM-software/CMSIS-NN.git
+[submodule "adinilm/firmware/max78000/CMSIS-NN"]
+	path = adinilm/firmware/max78000/CMSIS-NN
+	url = https://github.com/ARM-software/CMSIS-NN.git
