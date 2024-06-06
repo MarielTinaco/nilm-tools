@@ -27,8 +27,8 @@ class NilmtkSubsectionExtractor:
                 self.df = pd.DataFrame(apps_data, index=params["appliances"] + ["site meter"], columns=["power_series", "on_power_threshold"])
                 return self
 
-        def to_pickle(self, filename):
-                self.df.to_pickle(filename)
+        def to_pickle(self, *args, **kwargs):
+                self.df.to_pickle(*args, **kwargs)
                 return self
 
 if __name__ == "__main__":
