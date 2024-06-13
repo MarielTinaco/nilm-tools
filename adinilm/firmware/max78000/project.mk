@@ -11,5 +11,24 @@
 
 DEBUG=1
 
+# Add app source and includes
+IPATH += ./app/include
+VPATH += ./app/src
+
+# Add CMSIS-NN required operations
 IPATH += ./CMSIS-NN/Include ./CMSIS-NN/Include/Internal
 VPATH += ./CMSIS-NN/Source/SoftmaxFunctions ./CMSIS-NN/Source/ReshapeFunctions
+
+# Add No-OS dependencies
+IPATH += ./no-OS/drivers/meter/ade9430
+IPATH += ./no-OS/drivers/platform/maxim/common
+IPATH += ./no-OS/drivers/platform/maxim/max78000
+IPATH += ./no-OS/include
+IPATH += ./no-OS/drivers/display/nhd_c12832a1z
+
+VPATH += ./no-OS/drivers/meter/ade9430
+VPATH += ./no-OS/drivers/platform/maxim/common
+VPATH += ./no-OS/drivers/platform/maxim/max78000
+VPATH += ./no-OS/drivers/api
+VPATH += ./no-OS/util
+VPATH += ./no-OS/drivers/display/nhd_c12832a1z

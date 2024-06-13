@@ -50,7 +50,7 @@ int sensor_emul_init(struct sensor_emul_ctx * ctx)
 	if (ctx->fifo == NULL || ctx->fifo_size <= 0)
 		return -E_INVALID;
 
-	memset(ctx->fifo, 0, ctx->fifo_size);
+	memset(ctx->fifo, 0, ctx->fifo_size * EMUL_FIFO_BITLEN / 8);
 
 	sensor_emul_uart.uart = UART_DEV;
 	sensor_emul_uart.txData = sensor_emul_uart_tx;
