@@ -11,9 +11,11 @@ class NilmtkSubsectionExtractor:
         def __init__(self, dataset_path, params=None):
                 self.dataset_path = Path(dataset_path)
                 self.params = params
-                self.df = pd.DataFrame(columns=["power_series", "on_power_threshold"])
+                self.df = pd.DataFrame(columns=self.COLUMNS)
                 if self.params:
                         self.subsect(self.params)
+
+                setattr(self, "to_pickle", self.df.to_pickle)
 
         def subsect(self, params):
                 ds = nilmtk.DataSet(self.dataset_path)
@@ -27,16 +29,13 @@ class NilmtkSubsectionExtractor:
                                                                        resample=params["resample"]))
                         per_app.append(elec[app].on_power_threshold())
                         per_app.append(elec[app].get_activations())
-                        
+                        apps_data.append(per_app)
+
                 apps_data.append([elec.mains().power_series_all_data(sample_period=params["sample_period"],
                                                                      resample=params["resample"]),
                                   np.NaN,
                                   np.NaN])
                 self.df = pd.DataFrame(apps_data, index=params["appliances"] + ["site meter"], columns=self.COLUMNS)
-                return self
-
-        def to_pickle(self, *args, **kwargs):
-                self.df.to_pickle(*args, **kwargs)
                 return self
 
 if __name__ == "__main__":
@@ -59,5 +58,5 @@ if __name__ == "__main__":
                                                  "sample_period" : 1,
                                                  "resample" : True})
 
-        print(extr.df.loc["fridge freezer", "power_series"])
-        print(extr.df.loc["site meter", "on_power_threshold"])
+        # print(extr.df.loc["fridge freezer", "power_series"])
+        # print(extr.df.loc["site meter", "on_power_threshold"])
