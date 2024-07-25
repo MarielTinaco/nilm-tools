@@ -16,23 +16,25 @@ class NilmtkSubsectionExtractor:
                         self.subsect(self.params)
 
                 setattr(self, "to_pickle", self.df.to_pickle)
+                setattr(self, "loc", self.df.loc)
+                setattr(self, "iloc", self.df.iloc)
 
         def subsect(self, params):
                 ds = nilmtk.DataSet(self.dataset_path)
-                ds.set_window(start=params["start_time"], end=params["end_time"])
-                elec = ds.buildings[params["building"]].elec
+                ds.set_window(start=params["subsection"]["start_time"], end=params["subsection"]["end_time"])
+                elec = ds.buildings[params["subsection"]["building"]].elec
 
                 apps_data = []
                 for app in params["appliances"]:
                         per_app = []
-                        per_app.append(elec[app].power_series_all_data(sample_period=params["sample_period"],
-                                                                       resample=params["resample"]))
+                        per_app.append(elec[app].power_series_all_data(sample_period=params["preprocessing"]["sampling"]["sample_period"],
+                                                                       resample=params["preprocessing"]["sampling"]["resample"]))
                         per_app.append(elec[app].on_power_threshold())
                         per_app.append(elec[app].get_activations())
                         apps_data.append(per_app)
 
-                apps_data.append([elec.mains().power_series_all_data(sample_period=params["sample_period"],
-                                                                     resample=params["resample"]),
+                apps_data.append([elec.mains().power_series_all_data(sample_period=params["preprocessing"]["sampling"]["sample_period"],
+                                                                     resample=params["preprocessing"]["sampling"]["resample"]),
                                   np.NaN,
                                   np.NaN])
                 self.df = pd.DataFrame(apps_data, index=params["appliances"] + ["site meter"], columns=self.COLUMNS)
