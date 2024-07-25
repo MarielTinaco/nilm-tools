@@ -14,6 +14,7 @@ import adinilm.utils.paths_manager as pathsman
 
 class ProfileHandlerTypes(Enum):
         UNETNILM = "unetnilm"
+        SEQ2POINT = "seq2point"
 
 @dataclass
 class DatasetProfile:
@@ -162,7 +163,7 @@ class ProfileHandler(object):
         def write(*data, profile : DatasetProfile, **kwargs):
                 
                 if profile.handler not in [i.value for i in ProfileHandlerTypes]:
-                        raise f"{profile.handler} Handling Not Supported"
+                        raise IOError(f"{profile.handler} Handling Not Supported")
 
                 Handler = ProfileHandlingRegistry[ProfileHandlerTypes(profile.handler)]
                 ctx = ProfileHandlerContext(strategy=Handler(profiles_dir=profile.parent_dir, **kwargs))
@@ -178,7 +179,7 @@ class ProfileHandler(object):
                 profile = DatasetProfile.extract(Path(profile_path))
 
                 if profile.handler not in [i.value for i in ProfileHandlerTypes]:
-                        raise f"{profile.handler} Handling Not Supported"
+                        raise IOError(f"{profile.handler} Handling Not Supported")
                 
                 Handler = ProfileHandlingRegistry[ProfileHandlerTypes(profile.handler)]
                 ctx = ProfileHandlerContext(strategy=Handler(profiles_dir=profile.parent_dir, **kwargs))
