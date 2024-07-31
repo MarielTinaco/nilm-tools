@@ -103,6 +103,10 @@ class NormalizationHandler(object):
     def denormalize(self, data):
         return self.ctx.denormalize(data)
 
+def adaptive_minmax_scaling(data):
+    ctx = NormalizationContext(MinMaxScaling(min_val=data.min(), max_val=data.max()))
+    return ctx.normalize(data)
+
 # if __name__ == "__main__" :
 #     test = NormalizationHandler(mode="minmax", min_val = 100, max_val=500)
 #     test.normalize(data)
