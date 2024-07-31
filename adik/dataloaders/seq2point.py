@@ -3,7 +3,7 @@ import numpy as np
 from typing import Union, Iterable
 from collections.abc import Sequence
 
-class Seq2PointDataLoader(Sequence):
+class MultitargetQuantileRegressionSeq2PointDataLoader(Sequence):
 	
 	def __init__(self,
 	      		 data : Union[np.ndarray, Iterable],
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 					(torch.tensor(state).long().squeeze(), torch.tensor(power).float().squeeze())
 
 		seq2point_torch = Seq2PointTorchDataset(x, (y, z), seq_len=100, indexer=np.arange, 
-										sequence_strategy= Seq2PointDataLoader)
+										sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
 
 		print(len(seq2point_torch))
 		print(seq2point_torch[0])
@@ -106,6 +106,6 @@ if __name__ == "__main__":
 				return batch_data, tuple([batch_label[:,0,:], batch_label[:,1,:]])
 
 		seq2point_tf = Seq2PointTfDataset(x, (y, z), seq_len=100, indexer=np.arange, 
-											sequence_strategy= Seq2PointDataLoader)
+											sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
 		print(len(seq2point_tf))
 		print(seq2point_tf[0])
