@@ -7,15 +7,17 @@ from adinilm.src.tf_nilm.mains.train_seq2point import run_main
 
 def main():
 
-	run_main()
+	ret = run_main()
 
+	return ret
 
 if __name__ == "__main__":
+	ret = None
 	try:
-		main()
+		ret = main()
 	except KeyboardInterrupt:
 		print("\n-- KeyboardInterrupt --")
 	# except Exception as e:
 	# 	print(str(e))
 	finally:
-		print("print log file here")
+		print(f"Log for this session: {ret}")
