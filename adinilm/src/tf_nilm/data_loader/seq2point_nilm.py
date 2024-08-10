@@ -3,7 +3,7 @@ import sys, os
 import numpy as np
 import tensorflow as tf
 
-class MultitargetQuantileRegressionSeq2PointDataset(tf.keras.utils.Sequence):
+class NILMSeq2PointDataset(tf.keras.utils.Sequence):
 
         def __init__(self, input, labels, seq_len, indexer, sequence_strategy, batch_size=256):
                 self.batch_size = batch_size
