@@ -4,6 +4,7 @@ import argparse
 def get_parser():
 
         parser = argparse.ArgumentParser(description='Model')
+        parser.add_argument('--model', type=str)
         parser.add_argument('--sequence-length', '-l', type=int, default=100,
                             help='length of each input sequence')
         parser.add_argument('--batch-size', type=int, default=256,
