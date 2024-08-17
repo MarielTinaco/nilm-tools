@@ -3,38 +3,26 @@ import numpy as np
 from typing import Union, Iterable
 from collections.abc import Sequence
 
+from ..preprocessing.sampling import SequenceSampler
+
+
 class MultitargetQuantileRegressionSeq2PointDataLoader(Sequence):
-	
-	def __init__(self,
-	      		 data : Union[np.ndarray, Iterable],
-				 labels : Union[np.ndarray, Iterable],
-				 seq_len : int,
-				 indices : np.ndarray = None):
 
-		self.data = data
-		self.labels = labels
-		self.seq_len = int(seq_len)
+	def __init__(self, data : Union[np.ndarray, Iterable],
+			labels : Union[np.ndarray, Iterable],
+			seq_len : int, 
+			stride = 1):
 
-		self.indices = indices
-
-	def __get_sample(self, index):
-		indices = self.indices[index : index + self.seq_len]
-		inds_inputs = sorted(indices[:self.seq_len])
-		inds_labels = sorted(indices[self.seq_len-1:self.seq_len])
-
-		states = self.labels[0]
-		power = self.labels[1]
-
-		return self.data[inds_inputs], (states[inds_labels], power[inds_labels])
+		output_stride = lambda x: np.arange(seq_len-1, labels[0].shape[0], stride)
+		self.input_sampler = SequenceSampler(data=data, length=seq_len, axis=0, stride=stride)
+		self.rms_sampler = SequenceSampler(data=labels[0], length=1, axis=0, stride= output_stride)
+		self.states_sampler = SequenceSampler(data=labels[1], length=1, axis=0, stride= output_stride)
 
 	def __len__(self):
-		return (self.data.shape[0] - self.seq_len)
+		return len(self.input_sampler)
 
 	def __getitem__(self, index):
-		inputs, targets = self.__get_sample(index)
-		state = targets[0]
-		power = targets[1]
-		return inputs, (state, power)
+		return self.input_sampler[index], (self.rms_sampler[index], self.states_sampler[index])
 
 
 if __name__ == "__main__":

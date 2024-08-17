@@ -5,9 +5,10 @@ import tensorflow as tf
 
 class NILMSeq2PointDataset(tf.keras.utils.Sequence):
 
-        def __init__(self, input, labels, seq_len, indices, sequence_strategy, batch_size=256):
+        def __init__(self, input, labels, seq_len, indices, sequence_strategy, batch_size=256, **kwargs):
+                super().__init__(**kwargs)
                 self.batch_size = batch_size
-                self.backend = sequence_strategy(input, labels, seq_len, indices)
+                self.backend = sequence_strategy(input, labels, seq_len)
 
         def __len__(self):
                 return len(self.backend) // self.batch_size

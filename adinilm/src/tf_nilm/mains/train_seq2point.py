@@ -52,7 +52,6 @@ def run_main():
 						             batch_size=BATCH_SIZE,
 							     sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
 	
-
 	tmp = FILE_PATH.parent.parent / "tmp"
 	tmp.mkdir(exist_ok=True)
 
@@ -102,7 +101,10 @@ def run_main():
 		   early_stop_callback,
 		   logger_callback]
 
-	model.fit(data, epochs=args.epochs, callbacks=cb_list)
+	model.fit(data,
+	   	  epochs=args.epochs,
+		  callbacks=cb_list)
+
 	model.export(str(logdir_ / "test"), "tf_saved_model")
 	
 	converter = tf.lite.TFLiteConverter.from_saved_model(str(logdir_ / "test"))
