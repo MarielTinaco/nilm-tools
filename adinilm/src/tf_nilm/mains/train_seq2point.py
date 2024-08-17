@@ -1,5 +1,6 @@
 
 import sys, os
+from typing import Any
 import numpy as np
 import tensorflow as tf
 import logging
@@ -45,7 +46,9 @@ def run_main():
 	y = np.load(PROFILE_PATH / "training" / "states.npy")
 	z = np.load(PROFILE_PATH / "training" / "targets.npy")
 
-	data = NILMSeq2PointDataset(x, (y, z), seq_len=SEQ_LEN, indexer=np.arange,
+	indices = np.arange(x.shape[0])
+
+	data = NILMSeq2PointDataset(x, (y, z), seq_len=SEQ_LEN, indices=indices,
 						             batch_size=BATCH_SIZE,
 							     sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
 	

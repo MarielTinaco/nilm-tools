@@ -9,13 +9,13 @@ class MultitargetQuantileRegressionSeq2PointDataLoader(Sequence):
 	      		 data : Union[np.ndarray, Iterable],
 				 labels : Union[np.ndarray, Iterable],
 				 seq_len : int,
-				 indexer : object = None):
+				 indices : np.ndarray = None):
 
 		self.data = data
 		self.labels = labels
 		self.seq_len = int(seq_len)
 
-		self.indices = np.arange(self.data.shape[0]) if indexer is None else indexer(self.data.shape[0])
+		self.indices = indices
 
 	def __get_sample(self, index):
 		indices = self.indices[index : index + self.seq_len]
