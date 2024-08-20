@@ -72,6 +72,8 @@ def run_main():
 	best_checkpoint_path = weights / "best-epoch-{epoch}.keras"
 	last_checkpoint_path = weights / "checkpoint.keras"
 	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
+	
+	logging.info(f"Profile used: {PROFILE_PATH.resolve()}")
 	lrscheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor = "val_loss",
 								    mode = "min")
 	tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir_)
