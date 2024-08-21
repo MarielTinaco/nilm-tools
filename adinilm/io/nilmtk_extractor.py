@@ -56,7 +56,6 @@ class NilmtkSubsectionExtractor:
         def match_timeframes_to_site_meter(self, energy_type = "power_series"):
 
                 site_meter_power_series = self.df.loc["site meter", energy_type]
-
                 submeter_power_series = self.df.loc[self.params["appliances"], energy_type]
 
                 for key, submeter in submeter_power_series.items():

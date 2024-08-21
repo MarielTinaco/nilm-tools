@@ -8,6 +8,8 @@ import logging
 from pathlib import Path
 from datetime import datetime
 
+from tensorflow.keras.optimizers import Adam
+
 from adik.dataloaders.seq2point import MultitargetQuantileRegressionSeq2PointDataLoader
 
 from ..callbacks.loggingcallback import PyLoggingCallback
@@ -64,7 +66,7 @@ def run_main():
 
 	tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
-	model.compile(optimizer=tf.keras.optimizers.Adam(),
+	model.compile(optimizer=Adam(learning_rate = 1e-4),
 			loss={'y1_output' : MultiActivationLoss(), 'y2_output' : QuantileLoss()})
 
 	model.summary()
@@ -74,11 +76,11 @@ def run_main():
 	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
 	
 	logging.info(f"Profile used: {PROFILE_PATH.resolve()}")
-	lrscheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor = "val_loss",
+	lrscheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor = "loss",
 								    mode = "min")
 	tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir_)
 	best_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=best_checkpoint_path,
-									monitor='val_loss',
+									monitor='loss',
 									mode='min',
 									save_weights_only=False,
 									initial_value_threshold=0.41,
@@ -86,7 +88,7 @@ def run_main():
 	last_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=last_checkpoint_path,
 									save_weights_only=False,
 									verbose=1)
-	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
 						min_delta=0,
 						patience=0,
 						verbose=0,

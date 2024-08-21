@@ -17,22 +17,21 @@ def run_main():
 	args = parse_cmd.get_parser().parse_args()
 
 	SEQ_LEN = args.sequence_length
-	PROFILE_PATH = args.dataset_profile if args.dataset_profile is not None else PROFILES_DIR / "unetnilm_ukdale_20240321_155419"
-	CHECKPOINT = args.checkpoint if args.checkpoint is not None else tf.train.latest_checkpoint(LOG_DIR / "tf_nilm")
+	PROFILE_PATH = Path(args.dataset_profile) if args.dataset_profile is not None else PROFILES_DIR / "unetnilm_ukdale_20240321_155419"
+	CHECKPOINT = Path(args.checkpoint)
 	BATCH_SIZE = args.batch_size
 
 	x = np.load(PROFILE_PATH / "training" / "noise_inputs.npy")
 	y = np.load(PROFILE_PATH / "training" / "states.npy")
 	z = np.load(PROFILE_PATH / "training" / "targets.npy")
 
-	data = NILMSeq2PointDataset(x, (y, z), seq_len=SEQ_LEN, indexer=np.arange,
-							sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
-	model = simple_seq2point.create_model(SEQ_LEN)
+	indices = np.arange(x.shape[0])
 
-	model.load_weights(CHECKPOINT)
-
-	model.compile(optimizer=tf.keras.optimizers.Adam(),
-			loss={'y1_output' : MultiActivationLoss, 'y2_output' : QuantileLoss})
+	data = NILMSeq2PointDataset(x, (y, z), seq_len=SEQ_LEN, indices=indices,
+						             batch_size=BATCH_SIZE,
+							     sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
+	
+	model = tf.keras.models.load_model(CHECKPOINT)
 
 	ret = model.evaluate(data, batch_size=BATCH_SIZE)
 
