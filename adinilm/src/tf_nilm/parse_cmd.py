@@ -10,6 +10,8 @@ def get_parser():
                             help='length of each input sequence')
         parser.add_argument('--batch-size', type=int, default=256,
                             help='batch size')
+        parser.add_argument('--learning-rate', '-lr', type=float, default=1e-4,
+                            help='learning rate')
         parser.add_argument('--epochs', type=int, metavar='N',
                             help='number of total epochs to run (default: 90)')
         parser.add_argument('--dataset-profile', type=str,

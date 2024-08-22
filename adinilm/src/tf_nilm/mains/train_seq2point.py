@@ -31,6 +31,7 @@ def run_main():
 	PROFILE_PATH = Path(args.dataset_profile) if args.dataset_profile is not None else PROFILES_DIR / "unetnilm_ukdale_20240321_155419"
 	BATCH_SIZE = args.batch_size
 	MODEL = args.model
+	LEARNING_RATE = float(args.learning_rate)
 
 	logdirname = datetime.now().strftime("%Y%m%d-%H%M%S")
 	logdir = LOG_DIR / "tf_nilm"
@@ -44,7 +45,7 @@ def run_main():
 
 	logfile = logdir_ / "train.log"
 
-	x = np.load(PROFILE_PATH / "training" / "noise_inputs.npy")
+	x = np.load(PROFILE_PATH / "training" / "denoise_inputs.npy")
 	y = np.load(PROFILE_PATH / "training" / "states.npy")
 	z = np.load(PROFILE_PATH / "training" / "targets.npy")
 
@@ -66,7 +67,7 @@ def run_main():
 
 	tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
-	model.compile(optimizer=Adam(learning_rate = 1e-4),
+	model.compile(optimizer=Adam(learning_rate = LEARNING_RATE),
 			loss={'y1_output' : MultiActivationLoss(), 'y2_output' : QuantileLoss()})
 
 	model.summary()
