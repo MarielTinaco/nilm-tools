@@ -59,8 +59,11 @@ class NilmtkSubsectionExtractor:
                 submeter_power_series = self.df.loc[self.params["appliances"], energy_type]
 
                 for key, submeter in submeter_power_series.items():
-                        submeter.set_axis(submeter.index.floor(freq='s'))
-                        filtered_site_meter_pow_series = site_meter_power_series[site_meter_power_series.index > submeter.index[0]]
+                        # submeter = submeter.tz_convert('United Kingdowm')
+                        submeter_index = submeter.index.floor(freq='s')
+                        submeter.set_axis(submeter_index)
+                        filtered_site_meter_pow_series = site_meter_power_series[np.logical_and(site_meter_power_series.index >= submeter.index[0], site_meter_power_series.index < submeter.index[-1])]
+
                         site_meter_index = filtered_site_meter_pow_series.index.floor(freq='s')
                         submeter = submeter[site_meter_index]
                         self.df.at[key, 'power_series'] = submeter
