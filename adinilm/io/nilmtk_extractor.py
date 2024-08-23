@@ -36,17 +36,18 @@ class NilmtkSubsectionExtractor:
 
                 apps_data = []
                 for app in params["appliances"]:
+                        app_name = app["name"]
                         per_app = []
-                        per_app.append(elec[app].power_series_all_data(sample_period=submeter_sample_period,
+                        per_app.append(elec[app_name].power_series_all_data(sample_period=submeter_sample_period,
                                                                 resample=resample))
-                        per_app.append(elec[app].on_power_threshold())
-                        per_app.append(elec[app].get_activations())
+                        per_app.append(elec[app_name].on_power_threshold())
+                        per_app.append(elec[app_name].get_activations())
                         apps_data.append(per_app)
 
                 apps_data.append([elec.mains().power_series_all_data(sample_period=sitemeter_sample_period,
                                                                 resample=resample), np.NaN, np.NaN])
 
-                self.df = pd.DataFrame(apps_data, index=params["appliances"] + ["site meter"], columns=self.COLUMNS)
+                self.df = pd.DataFrame(apps_data, index=[app["name"] for app in params["appliances"]] + ["site meter"], columns=self.COLUMNS)
 
                 if match_timeframes:
                             self.match_timeframes_to_site_meter(energy_type="power_series")
@@ -56,7 +57,7 @@ class NilmtkSubsectionExtractor:
         def match_timeframes_to_site_meter(self, energy_type = "power_series"):
 
                 site_meter_power_series = self.df.loc["site meter", energy_type]
-                submeter_power_series = self.df.loc[self.params["appliances"], energy_type]
+                submeter_power_series = self.df.loc[[app["name"] for app in self.params["appliances"]] , energy_type]
 
                 for key, submeter in submeter_power_series.items():
                         # submeter = submeter.tz_convert('United Kingdowm')

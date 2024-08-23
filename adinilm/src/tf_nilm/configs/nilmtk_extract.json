@@ -1,0 +1,164 @@
+{
+        "train" : {
+                "subsection" : {
+                        "building" : 1,
+                        "start_time" : "2015-01-01",
+                        "end_time": "2015-10-20"
+                },
+                "preprocessing" : {
+                        "sampling" : {
+                                "sample_period" : 6,
+                                "resample" : true
+                        },
+                        "normalization" : {
+                                "mode" : "minmax",
+                                "scope" : "local"
+                        }
+                },
+                "appliances" : [
+                        {
+                                "name" : "fridge",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "washer dryer",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "kettle",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "dish washer",
+                                "window" : 10,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "microwave",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        }
+                ]
+        },
+        "test" : {
+                "subsection" : {
+                        "building" : 1,
+                        "start_time" : "2015-11-01",
+                        "end_time": "2016-04-30"
+                },
+                "preprocessing" : {
+                        "sampling" : {
+                                "sample_period" : 6,
+                                "resample" : true
+                        },
+                        "normalization" : {
+                                "mode" : "minmax",
+                                "scope" : "local"
+                        }
+                },
+                "appliances" : [
+                        {
+                                "name" : "fridge",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "washer dryer",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "kettle",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "dish washer",
+                                "window" : 10,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "microwave",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        }
+                ]
+        },
+         "val" : {
+                "subsection" : {
+                        "building" : 1,
+                        "start_time" : "2016-11-01",
+                        "end_time": "2016-12-31"
+                },
+                "preprocessing" : {
+                        "sampling" : {
+                                "sample_period" : 6,
+                                "resample" : true
+                        },
+                        "normalization" : {
+                                "mode" : "minmax",
+                                "scope" : "local"
+                        }
+                },
+                "appliances" : [
+                        {
+                                "name" : "fridge",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "washer dryer",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "kettle",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "dish washer",
+                                "window" : 10,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        },
+                        {
+                                "name" : "microwave",
+                                "window" : 50,
+                                "min" : 0,
+                                "max" : 0,
+                                "on_power_threshold" : 10
+                        }
+                ]
+        }
+}
