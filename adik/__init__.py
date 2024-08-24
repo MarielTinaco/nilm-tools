@@ -1,2 +1,2 @@
 
-from .preprocessing.sampling import SequenceSampler
+from .sampling.sampling import WindowSampler

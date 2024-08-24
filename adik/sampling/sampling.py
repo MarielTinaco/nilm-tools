@@ -3,7 +3,7 @@ from typing import Optional, Union, Callable, Protocol
 import numpy as np
 
 
-class SequenceSampler:
+class WindowSampler:
     
         def __init__(self, data : np.ndarray, stride : Optional[Union[int, np.ndarray, Callable]] = None,  *args, **kwargs):
                 """

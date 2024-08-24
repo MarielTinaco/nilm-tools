@@ -52,8 +52,8 @@ def run_main():
 	indices = np.arange(x.shape[0])
 
 	data = NILMSeq2PointDataset(x, (y, z), seq_len=SEQ_LEN, indices=indices,
-						             batch_size=BATCH_SIZE,
-							     sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
+				batch_size=BATCH_SIZE,
+				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
 	
 	tmp = FILE_PATH.parent.parent / "tmp"
 	tmp.mkdir(exist_ok=True)

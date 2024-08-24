@@ -3,7 +3,7 @@ import numpy as np
 from typing import Union, Iterable
 from collections.abc import Sequence
 
-from ..preprocessing.sampling import SequenceSampler
+from ..sampling.sampling import WindowSampler
 
 
 class MultitargetQuantileRegressionSeq2PointDataLoader(Sequence):
@@ -14,9 +14,9 @@ class MultitargetQuantileRegressionSeq2PointDataLoader(Sequence):
 			stride = 1):
 
 		output_stride = lambda x: np.arange(seq_len-1, labels[0].shape[0], stride)
-		self.input_sampler = SequenceSampler(data=data, length=seq_len, axis=0, stride=stride)
-		self.rms_sampler = SequenceSampler(data=labels[0], length=1, axis=0, stride= output_stride)
-		self.states_sampler = SequenceSampler(data=labels[1], length=1, axis=0, stride= output_stride)
+		self.input_sampler = WindowSampler(data=data, length=seq_len, axis=0, stride=stride)
+		self.rms_sampler = WindowSampler(data=labels[0], length=1, axis=0, stride= output_stride)
+		self.states_sampler = WindowSampler(data=labels[1], length=1, axis=0, stride= output_stride)
 
 	def __len__(self):
 		return len(self.input_sampler)
