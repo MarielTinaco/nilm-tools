@@ -45,16 +45,26 @@ def run_main():
 
 	logfile = logdir_ / "train.log"
 
-	x = np.load(PROFILE_PATH / "training" / "denoise_inputs.npy")
-	y = np.load(PROFILE_PATH / "training" / "states.npy")
-	z = np.load(PROFILE_PATH / "training" / "targets.npy")
+	x_train = np.load(PROFILE_PATH / "train" / "denoise_inputs.npy")
+	y_train = np.load(PROFILE_PATH / "train" / "states.npy")
+	z_train = np.load(PROFILE_PATH / "train" / "targets.npy")
 
-	indices = np.arange(x.shape[0])
+	indices = np.arange(x_train.shape[0])
 
-	data = NILMSeq2PointDataset(x, (y, z), seq_len=SEQ_LEN, indices=indices,
+	train_data = NILMSeq2PointDataset(x_train, (y_train, z_train), seq_len=SEQ_LEN, indices=indices,
 				batch_size=BATCH_SIZE,
 				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
 	
+	x_val = np.load(PROFILE_PATH / "val" / "denoise_inputs.npy")
+	y_val = np.load(PROFILE_PATH / "val" / "states.npy")
+	z_val = np.load(PROFILE_PATH / "val" / "targets.npy")
+
+	indices = np.arange(x_val.shape[0])
+
+	val_data = NILMSeq2PointDataset(x_val, (y_val, z_val), seq_len=SEQ_LEN, indices=indices,
+				batch_size=BATCH_SIZE,
+				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
+
 	tmp = FILE_PATH.parent.parent / "tmp"
 	tmp.mkdir(exist_ok=True)
 
@@ -77,11 +87,11 @@ def run_main():
 	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
 	
 	logging.info(f"Profile used: {PROFILE_PATH.resolve()}")
-	lrscheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor = "loss",
+	lrscheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor = "val_loss",
 								    mode = "min")
 	tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir_)
 	best_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=best_checkpoint_path,
-									monitor='loss',
+									monitor='val_loss',
 									mode='min',
 									save_weights_only=False,
 									initial_value_threshold=0.41,
@@ -89,7 +99,7 @@ def run_main():
 	last_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=last_checkpoint_path,
 									save_weights_only=False,
 									verbose=1)
-	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='loss',
+	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
 						min_delta=0,
 						patience=0,
 						verbose=0,
@@ -106,9 +116,10 @@ def run_main():
 		   early_stop_callback,
 		   logger_callback]
 
-	model.fit(data,
+	model.fit(train_data,
 	   	  epochs=args.epochs,
-		  callbacks=cb_list)
+		  callbacks=cb_list,
+		  validation_data=val_data)
 
 	model.export(str(logdir_ / "test"), "tf_saved_model")
 	
