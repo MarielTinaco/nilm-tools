@@ -15,9 +15,9 @@ from adik.dataloaders.seq2point import MultitargetQuantileRegressionSeq2PointDat
 from ..callbacks.loggingcallback import PyLoggingCallback
 from ..data_loader.seq2point_nilm import NILMSeq2PointDataset
 from ..models import simple_seq2point
-from .. import parse_cmd
 from ..losses.quantileloss import QuantileLoss 
 from ..losses.multiactivationloss import MultiActivationLoss 
+from .. import parse_cmd
 
 from adinilm.utils.paths_manager import PROFILES_DIR, LOG_DIR
 
@@ -28,10 +28,11 @@ def run_main():
 	args = parse_cmd.get_parser().parse_args()
 
 	SEQ_LEN = args.sequence_length
-	PROFILE_PATH = Path(args.dataset_profile) if args.dataset_profile is not None else PROFILES_DIR / "unetnilm_ukdale_20240321_155419"
+	PROFILE_PATH = Path(args.dataset) if args.dataset is not None else PROFILES_DIR / "unetnilm_ukdale_20240321_155419"
 	BATCH_SIZE = args.batch_size
 	MODEL = args.model
 	LEARNING_RATE = float(args.learning_rate)
+	WEIGHT_DECAY = float(args.weight_decay)
 
 	logdirname = datetime.now().strftime("%Y%m%d-%H%M%S")
 	logdir = LOG_DIR / "tf_nilm"
@@ -77,7 +78,9 @@ def run_main():
 
 	tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
 
-	model.compile(optimizer=Adam(learning_rate = LEARNING_RATE),
+	optimizer = tf.keras.optimizers.AdamW(learning_rate=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
+
+	model.compile(optimizer=optimizer,
 			loss={'y1_output' : MultiActivationLoss(), 'y2_output' : QuantileLoss()})
 
 	model.summary()

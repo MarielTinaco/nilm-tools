@@ -12,9 +12,11 @@ def get_parser():
                             help='batch size')
         parser.add_argument('--learning-rate', '-lr', type=float, default=1e-4,
                             help='learning rate')
+        parser.add_argument('--weight-decay', '-wd', type=float, default=0.004,
+                            help='weight decay')
         parser.add_argument('--epochs', type=int, metavar='N',
                             help='number of total epochs to run (default: 90)')
-        parser.add_argument('--dataset-profile', type=str,
+        parser.add_argument('--dataset', type=str,
                             help='dataset profile source path')
         parser.add_argument('--checkpoint', type=str, default=None,
                             help='checkpoint')
