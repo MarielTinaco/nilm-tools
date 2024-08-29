@@ -100,9 +100,9 @@ def create_resnet_model(input_window_length):
 
         flatten_layer = keras.layers.Flatten()(conv15)
         
-        label_layer = keras.layers.Dense(256, activation="relu",
+        label_layer = keras.layers.Dense(256, activation="linear",
                                         kernel_initializer=init)(flatten_layer)
-        output_layer_1 = keras.layers.Dense(2*5, activation="linear", name="y1_output")(label_layer)
+        output_layer_1 = keras.layers.Dense(5*2, activation="sigmoid", name="y1_output")(label_layer)
         output_layer_2 = keras.layers.Dense(5*5, activation="linear", name="y2_output")(label_layer)
 
         model = keras.Model(inputs=input_layer, outputs=[output_layer_1, output_layer_2])

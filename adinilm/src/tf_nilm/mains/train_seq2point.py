@@ -19,7 +19,7 @@ from ..losses.quantileloss import QuantileLoss
 from ..losses.multiactivationloss import MultiActivationLoss 
 from .. import parse_cmd
 
-from adinilm.utils.paths_manager import PROFILES_DIR, LOG_DIR
+from adinilm.utils.paths_manager import PROFILES_DIR, LOG_DIR, DATA_DIR
 
 FILE_PATH = Path(__file__)
 
@@ -28,7 +28,7 @@ def run_main():
 	args = parse_cmd.get_parser().parse_args()
 
 	SEQ_LEN = args.sequence_length
-	PROFILE_PATH = Path(args.dataset) if args.dataset is not None else PROFILES_DIR / "unetnilm_ukdale_20240321_155419"
+	PROFILE_PATH = Path(args.dataset) if args.dataset is not None else DATA_DIR / "NILMTK" / "processed"
 	BATCH_SIZE = args.batch_size
 	MODEL = args.model
 	LEARNING_RATE = float(args.learning_rate)
@@ -81,7 +81,7 @@ def run_main():
 	optimizer = tf.keras.optimizers.AdamW(learning_rate=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
 
 	model.compile(optimizer=optimizer,
-			loss={'y1_output' : MultiActivationLoss(), 'y2_output' : QuantileLoss()})
+			loss={'y1_output' : MultiActivationLoss(from_logits=False), 'y2_output' : QuantileLoss()})
 
 	model.summary()
 
@@ -103,13 +103,13 @@ def run_main():
 									save_weights_only=False,
 									verbose=1)
 	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
-						min_delta=0,
-						patience=0,
+						min_delta=0.04,
+						patience=5,
 						verbose=0,
 						mode='auto',
 						baseline=None,
 						restore_best_weights=False,
-						start_from_epoch=0
+						start_from_epoch=40
 						)
 
 	cb_list = [tensorboard_callback,
