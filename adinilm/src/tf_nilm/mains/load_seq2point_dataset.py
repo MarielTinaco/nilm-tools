@@ -49,7 +49,6 @@ def run_main():
                 with open(full_raw_path, 'rb') as raw_pickle:
                         raw_data = pickle.load(raw_pickle)
 
-
                 power_series = raw_data.loc[raw_data.index != "site meter","power_series"]
                 on_power_threshold = raw_data.loc[raw_data.index != "site meter","on_power_threshold"]
 
@@ -63,9 +62,9 @@ def run_main():
                 data = formatter(power_series)
                 data_i = mixer(data)
                 data_i_den = quantile_filter(data_i, 10, p=50)
-                data_i_den = minmax_scale(data_i_den, feature_range=(0, 1))
+                data_i_den = minmax_scale(data_i_den, feature_range=(-128, 127))
                 data_i_n = noiser(data_i)
-                data_i_n = minmax_scale(data_i_n, feature_range=(0, 1))
+                data_i_n = minmax_scale(data_i_n, feature_range=(-128, 127))
                 data = filt(data)
                 data_p = np.apply_along_axis(norm, 0, data)
                 data = data.T

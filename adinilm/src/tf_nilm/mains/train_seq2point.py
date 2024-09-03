@@ -46,7 +46,6 @@ def run_main():
 
 	logfile = logdir_ / "train.log"
 
-
 	train_data = NILMSeq2PointDataset(PROFILE_PATH / "train", seq_len=SEQ_LEN,
 				batch_size=BATCH_SIZE,
 				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
