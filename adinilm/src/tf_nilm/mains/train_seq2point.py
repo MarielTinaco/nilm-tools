@@ -46,23 +46,12 @@ def run_main():
 
 	logfile = logdir_ / "train.log"
 
-	x_train = np.load(PROFILE_PATH / "train" / "denoise_inputs.npy")
-	y_train = np.load(PROFILE_PATH / "train" / "states.npy")
-	z_train = np.load(PROFILE_PATH / "train" / "targets.npy")
 
-	indices = np.arange(x_train.shape[0])
-
-	train_data = NILMSeq2PointDataset(x_train, (y_train, z_train), seq_len=SEQ_LEN, indices=indices,
+	train_data = NILMSeq2PointDataset(PROFILE_PATH / "train", seq_len=SEQ_LEN,
 				batch_size=BATCH_SIZE,
 				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
-	
-	x_val = np.load(PROFILE_PATH / "val" / "denoise_inputs.npy")
-	y_val = np.load(PROFILE_PATH / "val" / "states.npy")
-	z_val = np.load(PROFILE_PATH / "val" / "targets.npy")
 
-	indices = np.arange(x_val.shape[0])
-
-	val_data = NILMSeq2PointDataset(x_val, (y_val, z_val), seq_len=SEQ_LEN, indices=indices,
+	val_data = NILMSeq2PointDataset(PROFILE_PATH / "test", seq_len=SEQ_LEN,
 				batch_size=BATCH_SIZE,
 				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
 

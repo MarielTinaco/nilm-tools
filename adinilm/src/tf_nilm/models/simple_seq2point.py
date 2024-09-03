@@ -18,8 +18,11 @@ def create_model(input_window_length):
         conv_layer_5 = keras.layers.Convolution2D(filters=50, kernel_size=(5, 1), strides=(1, 1), padding="same", activation="relu")(conv_layer_4)
         flatten_layer = keras.layers.Flatten()(conv_layer_5)
         label_layer = keras.layers.Dense(1024, activation="relu")(flatten_layer)
-        output_layer_1 = keras.layers.Dense(2*5, activation="linear", name="y1_output")(label_layer)
-        output_layer_2 = keras.layers.Dense(5*5, activation="linear", name="y2_output")(label_layer)
+        output_layer_1 = keras.layers.Dense(2*5, activation="linear")(label_layer)
+        output_layer_2 = keras.layers.Dense(5*5, activation="linear")(label_layer)
+
+        output_layer_1 = keras.layers.Reshape((5, 2), name="y1_output")(output_layer_1)
+        output_layer_2 = keras.layers.Reshape((5, 5), name="y2_output")(output_layer_2)
 
         model = keras.Model(inputs=input_layer, outputs=[output_layer_1, output_layer_2])
         return model
@@ -102,8 +105,11 @@ def create_resnet_model(input_window_length):
         
         label_layer = keras.layers.Dense(256, activation="linear",
                                         kernel_initializer=init)(flatten_layer)
-        output_layer_1 = keras.layers.Dense(5*2, activation="sigmoid", name="y1_output")(label_layer)
-        output_layer_2 = keras.layers.Dense(5*5, activation="linear", name="y2_output")(label_layer)
+        output_layer_1 = keras.layers.Dense(5*2, activation="sigmoid")(label_layer)
+        output_layer_2 = keras.layers.Dense(5*5, activation="linear")(label_layer)
+
+        output_layer_1 = keras.layers.Reshape((5, 2), name="y1_output")(output_layer_1)
+        output_layer_2 = keras.layers.Reshape((5, 5), name="y2_output")(output_layer_2)
 
         model = keras.Model(inputs=input_layer, outputs=[output_layer_1, output_layer_2])
         return model
