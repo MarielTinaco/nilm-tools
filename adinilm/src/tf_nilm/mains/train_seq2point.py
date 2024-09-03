@@ -75,7 +75,7 @@ def run_main():
 
 	model.summary()
 
-	best_checkpoint_path = weights / "best-epoch-{epoch}.keras"
+	best_checkpoint_path = weights / "best.keras"
 	last_checkpoint_path = weights / "checkpoint.keras"
 	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
 	
@@ -86,6 +86,7 @@ def run_main():
 	best_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=best_checkpoint_path,
 									monitor='val_loss',
 									mode='min',
+									save_best_only=True,
 									save_weights_only=False,
 									initial_value_threshold=0.41,
 									verbose=1)

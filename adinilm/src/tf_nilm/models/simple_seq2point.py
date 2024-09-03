@@ -27,7 +27,7 @@ def create_model(input_window_length):
         model = keras.Model(inputs=input_layer, outputs=[output_layer_1, output_layer_2])
         return model
 
-def create_resnet_model(input_window_length):
+def create_resnet_model(input_window_length, dropout=0.2):
     
         init = keras.initializers.HeNormal(seed=None)
 
@@ -47,7 +47,7 @@ def create_resnet_model(input_window_length):
         resid_1 = keras.layers.BatchNormalization()(resid_1)
 
         conv4 = keras.layers.Conv2D(filters=48, kernel_size=(3, 1), strides=(1, 1), padding="same", activation="relu",
-                                        kernel_initializer=init)(resid_1)
+                                        kernel_initializer=init)(reshape_layer)
         conv4 = keras.layers.BatchNormalization()(conv4)
         conv5 = keras.layers.Conv2D(filters=48, kernel_size=(3, 1), strides=(1, 1), padding="same", activation="relu",
                                         kernel_initializer=init)(conv4)
@@ -60,8 +60,10 @@ def create_resnet_model(input_window_length):
         resid_2 = keras.layers.ReLU()(resid_2)
         resid_2 = keras.layers.BatchNormalization()(resid_2)
 
+        dropout_layer_0 = keras.layers.Dropout(dropout)(resid_2)
+
         conv7 = keras.layers.Conv2D(filters=64, kernel_size=(3, 1), strides=(1, 1), padding="same", activation="relu",
-                                        kernel_initializer=init)(resid_2)
+                                        kernel_initializer=init)(dropout_layer_0)
         conv7 = keras.layers.BatchNormalization()(conv7)
         conv8 = keras.layers.Conv2D(filters=64, kernel_size=(3, 1), strides=(1, 1), padding="same", activation="relu",
                                         kernel_initializer=init)(conv7)
@@ -74,8 +76,10 @@ def create_resnet_model(input_window_length):
         resid_3 = keras.layers.ReLU()(resid_3)
         resid_3 = keras.layers.BatchNormalization()(resid_3)
 
+        dropout_layer_1 = keras.layers.Dropout(dropout)(resid_3)
+
         conv10 = keras.layers.Conv2D(filters=96, kernel_size=(3, 1), strides=(1, 1), padding="same", activation="relu",
-                                        kernel_initializer=init)(resid_3)
+                                        kernel_initializer=init)(dropout_layer_1)
         conv10 = keras.layers.BatchNormalization()(conv10)
         conv11 = keras.layers.Conv2D(filters=96, kernel_size=(3, 1), strides=(1, 1), padding="same", activation="relu",
                                         kernel_initializer=init)(conv10)
@@ -88,8 +92,10 @@ def create_resnet_model(input_window_length):
         resid_4 = keras.layers.ReLU()(resid_4)
         resid_4 = keras.layers.BatchNormalization()(resid_4)
 
+        dropout_layer_2 = keras.layers.Dropout(dropout)(resid_4)
+
         conv13 = keras.layers.Conv2D(filters=128, kernel_size=(3, 1), strides=(1, 1), padding="same", activation="relu",
-                                        kernel_initializer=init)(resid_4)
+                                        kernel_initializer=init)(dropout_layer_2)
         conv13 = keras.layers.AveragePooling2D(pool_size=(2, 2), strides=(2, 2), padding='same')(conv13)
         conv13 = keras.layers.BatchNormalization()(conv13)
 
@@ -103,8 +109,10 @@ def create_resnet_model(input_window_length):
 
         flatten_layer = keras.layers.Flatten()(conv15)
         
+        dropout_layer_3 = keras.layers.Dropout(dropout)(flatten_layer)
+
         label_layer = keras.layers.Dense(256, activation="linear",
-                                        kernel_initializer=init)(flatten_layer)
+                                        kernel_initializer=init)(dropout_layer_3)
         output_layer_1 = keras.layers.Dense(5*2, activation="sigmoid")(label_layer)
         output_layer_2 = keras.layers.Dense(5*5, activation="linear")(label_layer)
 
