@@ -15,7 +15,8 @@ from adik.dataloaders.seq2point import MultitargetQuantileRegressionSeq2PointDat
 from ..callbacks.loggingcallback import PyLoggingCallback
 from ..data_loader.seq2point_nilm import NILMSeq2PointDataset
 from ..models import simple_seq2point
-from ..losses.quantileloss import QuantileLoss 
+from ..metrics.baseaccuracy import BaseAccuracy
+from ..losses.quantileloss import QuantileLoss
 from ..losses.multiactivationloss import MultiActivationLoss 
 from .. import parse_cmd
 
@@ -69,7 +70,8 @@ def run_main():
 	optimizer = tf.keras.optimizers.AdamW(learning_rate=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
 
 	model.compile(optimizer=optimizer,
-			loss={'y1_output' : MultiActivationLoss(from_logits=False), 'y2_output' : QuantileLoss()})
+			loss={'y1_output' : MultiActivationLoss(from_logits=False), 'y2_output' : QuantileLoss()},
+			metrics={'y1_output' : BaseAccuracy()})
 
 	model.summary()
 
