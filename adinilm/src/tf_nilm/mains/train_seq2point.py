@@ -80,12 +80,12 @@ def run_main():
 	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
 	
 	logging.info(f"Profile used: {PROFILE_PATH.resolve()}")
-	lrscheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor = "val_loss",
-								    mode = "min")
+	lrscheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor = "val_y1_output_accuracy",
+								    mode = "max")
 	tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir_)
 	best_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=best_checkpoint_path,
-									monitor='val_loss',
-									mode='min',
+									monitor='val_y1_output_accuracy',
+									mode='max',
 									save_best_only=True,
 									save_weights_only=False,
 									initial_value_threshold=0.41,
@@ -93,11 +93,11 @@ def run_main():
 	last_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=last_checkpoint_path,
 									save_weights_only=False,
 									verbose=1)
-	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_y1_output_accuracy',
 						min_delta=0.04,
 						patience=5,
 						verbose=0,
-						mode='auto',
+						mode='max',
 						baseline=None,
 						restore_best_weights=False,
 						start_from_epoch=40
