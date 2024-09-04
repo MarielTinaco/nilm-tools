@@ -149,6 +149,28 @@ class UNETNiLMProfileHandler(ProfileHandlingStrategy):
                 return DatasetProfile.extract(profile_path), x1, x2, y, z
 
 
+class GenericProfileHandler(ProfileHandlingStrategy):
+
+        def write(self, *data : Any, profile=None, subdir=None, **kwargs):
+                assert len(data) == 4, "Please provide [denoise_inputs, noise_inputs, targets, states]"
+                denoise_inputs = data[0]
+                noise_inputs = data[1]
+                targets = data[2]
+                states = data[3]
+
+                subdir = profile.full_path / subdir
+                subdir.mkdir(exist_ok=True)
+
+                np.save(str(subdir) + "/denoise_inputs.npy", denoise_inputs)
+                np.save(str(subdir) + "/noise_inputs.npy", noise_inputs)
+                np.save(str(subdir) + "/targets.npy", targets)
+                np.save(str(subdir) + "/states.npy", states)
+
+                return profile
+
+        def read(self, profile_path : Union[Path, str] = None, *args, **kwargs) -> Any:
+                ...
+
 ProfileHandlingRegistry = {
         ProfileHandlerTypes.UNETNILM : UNETNiLMProfileHandler
 }
