@@ -1,4 +1,4 @@
-from src.data_processing.normalize import NormalizationHandler
+from adinilm.data_processing.normalize import NormalizationHandler
 import numpy as np
 
 def test_normalize():

@@ -1,5 +1,5 @@
-from pathlib import WindowsPath
-from src.io.profile import *
+from pathlib import WindowsPath, Path
+from adinilm.io.profile import *
 
 def test_dataset_profiles_write_unetnilm():
         import shutil

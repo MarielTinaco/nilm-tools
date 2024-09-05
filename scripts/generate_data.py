@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.unetnilm.data_proc.load_data import pre_proc_ukdale, pre_proc_ukdale_nilmtk
+from nilm.unetnilm.data_proc.load_data import pre_proc_ukdale, pre_proc_ukdale_nilmtk
 
 # params = [
 #         ("test", ("2014-06-01", "2014-06-06")),

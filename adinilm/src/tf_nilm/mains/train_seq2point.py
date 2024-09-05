@@ -1,0 +1,127 @@
+
+import sys, os
+from typing import Any
+import numpy as np
+import tensorflow as tf
+import logging
+
+from pathlib import Path
+from datetime import datetime
+
+from tensorflow.keras.optimizers import Adam
+
+from adik.dataloaders.seq2point import MultitargetQuantileRegressionSeq2PointDataLoader
+
+from ..callbacks.loggingcallback import PyLoggingCallback
+from ..data_loader.seq2point_nilm import NILMSeq2PointDataset
+from ..models import simple_seq2point
+from ..metrics.baseaccuracy import BaseAccuracy
+from ..losses.quantileloss import QuantileLoss
+from ..losses.multiactivationloss import MultiActivationLoss 
+from .. import parse_cmd
+
+from adinilm.utils.paths_manager import PROFILES_DIR, LOG_DIR, DATA_DIR
+
+FILE_PATH = Path(__file__)
+
+def run_main():
+
+	args = parse_cmd.get_parser().parse_args()
+
+	SEQ_LEN = args.sequence_length
+	PROFILE_PATH = Path(args.dataset) if args.dataset is not None else DATA_DIR / "NILMTK" / "processed"
+	BATCH_SIZE = args.batch_size
+	MODEL = args.model
+	LEARNING_RATE = float(args.learning_rate)
+	WEIGHT_DECAY = float(args.weight_decay)
+
+	logdirname = datetime.now().strftime("%Y%m%d-%H%M%S")
+	logdir = LOG_DIR / "tf_nilm"
+	logdir.mkdir(exist_ok=True)
+
+	logdir_ = logdir / logdirname
+	logdir_.mkdir(exist_ok=True)
+
+	weights = logdir_ / "weights"
+	weights.mkdir(exist_ok=True)
+
+	logfile = logdir_ / "train.log"
+
+	train_data = NILMSeq2PointDataset(PROFILE_PATH / "train", seq_len=SEQ_LEN,
+				batch_size=BATCH_SIZE,
+				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
+
+	val_data = NILMSeq2PointDataset(PROFILE_PATH / "test", seq_len=SEQ_LEN,
+				batch_size=BATCH_SIZE,
+				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
+
+	tmp = FILE_PATH.parent.parent / "tmp"
+	tmp.mkdir(exist_ok=True)
+
+	if MODEL == "resnet":
+		model = simple_seq2point.create_resnet_model(SEQ_LEN)
+		dot_img_file = tmp / 'resnet_model.png'
+	else:
+		model = simple_seq2point.create_model(SEQ_LEN)
+		dot_img_file = tmp / 'simplenet_model.png'
+
+	tf.keras.utils.plot_model(model, to_file=dot_img_file, show_shapes=True)
+
+	optimizer = tf.keras.optimizers.AdamW(learning_rate=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
+
+	model.compile(optimizer=optimizer,
+			loss={'y1_output' : MultiActivationLoss(from_logits=False), 'y2_output' : QuantileLoss()},
+			metrics={'y1_output' : BaseAccuracy()})
+
+	model.summary()
+
+	best_checkpoint_path = weights / "best.keras"
+	last_checkpoint_path = weights / "checkpoint.keras"
+	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
+	
+	logging.info(f"Profile used: {PROFILE_PATH.resolve()}")
+	lrscheduler_callback = tf.keras.callbacks.ReduceLROnPlateau(monitor = "val_y1_output_accuracy",
+								    mode = "max")
+	tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir_)
+	best_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=best_checkpoint_path,
+									monitor='val_y1_output_accuracy',
+									mode='max',
+									save_best_only=True,
+									save_weights_only=False,
+									initial_value_threshold=0.41,
+									verbose=1)
+	last_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=last_checkpoint_path,
+									save_weights_only=False,
+									verbose=1)
+	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_y1_output_accuracy',
+						min_delta=0.04,
+						patience=5,
+						verbose=0,
+						mode='max',
+						baseline=None,
+						restore_best_weights=False,
+						start_from_epoch=40
+						)
+
+	cb_list = [tensorboard_callback,
+	    	   lrscheduler_callback,
+		   best_checkpoint_callback,
+		   last_checkpoint_callback,
+		   early_stop_callback,
+		   logger_callback]
+
+	model.fit(train_data,
+	   	  epochs=args.epochs,
+		  callbacks=cb_list,
+		  validation_data=val_data)
+
+	model.export(str(logdir_ / "test"), "tf_saved_model")
+	
+	converter = tf.lite.TFLiteConverter.from_saved_model(str(logdir_ / "test"))
+	tflite_model = converter.convert()
+	with open(logdir_ / "model.tflite", "wb") as f:
+		f.write(tflite_model)
+
+	ret = logdir_.resolve()
+
+	return ret

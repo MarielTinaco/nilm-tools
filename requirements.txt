@@ -6,3 +6,4 @@ scikit-image
 ipykernel
 torchmetrics
 pytest
+pypeln

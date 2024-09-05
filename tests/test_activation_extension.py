@@ -2,8 +2,8 @@ import pytest
 import random
 import nilmtk
 
-import src.utils.paths_manager as pathsman
-from src.augmentation.activation_extension import *
+import adinilm.utils.paths_manager as pathsman
+from adinilm.augmentation.activation_extension import *
 
 def create_test_nilmtk_elecmeter_data():
         BUILDING = 1

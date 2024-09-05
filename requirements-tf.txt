@@ -1,0 +1,5 @@
+tensorflow
+tensorboard
+pandas
+pydot
+pytest
