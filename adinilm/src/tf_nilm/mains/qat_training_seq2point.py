@@ -105,8 +105,8 @@ def run_main():
 
 	model.summary()
 
-	best_checkpoint_path = weights / "best.keras"
-	last_checkpoint_path = weights / "checkpoint.keras"
+	best_checkpoint_path = weights / "best.h5"
+	last_checkpoint_path = weights / "checkpoint.h5"
 	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
 	
 	logging.info(f"Profile used: {PROFILE_PATH.resolve()}")
@@ -153,12 +153,16 @@ def run_main():
 	
 	print("Quantized latest model in Mb:", os.path.getsize(logdir_ / "model_latest.tflite") / float(2**20))
 
-	converter = tf.lite.TFLiteConverter(best_checkpoint_path)
-	converter.optimizations = [tf.lite.Optimize.DEFAULT]
-	tflite_model_best = converter.convert()
-	with open(logdir_ / "model_best.tflite", "wb") as f:
-		f.write(tflite_model_best)
-	
-	print("Quantized latest model in Mb:", os.path.getsize(logdir_ / "model_best.tflite") / float(2**20))
+	with tf.keras.utils.custom_object_scope({'MultiActivationLoss':MultiActivationLoss, 'QuantileLoss':QuantileLoss, 'BaseAccuracy':BaseAccuracy}):
+		with tfmot.quantization.keras.quantize_scope():                                 
+			model = tf.keras.models.load_model(best_checkpoint_path) 
+
+		converter = tf.lite.TFLiteConverter.from_keras_model(model)
+		converter.optimizations = [tf.lite.Optimize.DEFAULT]
+		tflite_model_best = converter.convert()
+		with open(logdir_ / "model_best.tflite", "wb") as f:
+			f.write(tflite_model_best)
+		
+		print("Quantized latest model in Mb:", os.path.getsize(logdir_ / "model_best.tflite") / float(2**20))
 
 	return ret
