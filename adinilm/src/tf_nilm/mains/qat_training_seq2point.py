@@ -110,11 +110,11 @@ def run_main():
 	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
 	
 	logging.info(f"Profile used: {PROFILE_PATH.resolve()}")
-	lrscheduler_callback = keras.callbacks.ReduceLROnPlateau(monitor = "val_y1_output_accuracy",
+	lrscheduler_callback = keras.callbacks.ReduceLROnPlateau(monitor = "val_quantize_annotate_53_accuracy",
 								    mode = "max")
 	tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir_)
 	best_checkpoint_callback = keras.callbacks.ModelCheckpoint(filepath=str(best_checkpoint_path),
-									monitor='val_y1_output_accuracy',
+									monitor='val_quantize_annotate_53_accuracy',
 									mode='max',
 									save_best_only=True,
 									save_weights_only=False,
@@ -123,14 +123,14 @@ def run_main():
 	last_checkpoint_callback = keras.callbacks.ModelCheckpoint(filepath=str(last_checkpoint_path),
 									save_weights_only=False,
 									verbose=1)
-	early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_y1_output_accuracy',
+	early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_quantize_annotate_53_accuracy',
 						min_delta=0.04,
 						patience=5,
 						verbose=0,
 						mode='max',
 						baseline=None,
 						restore_best_weights=False,
-						start_from_epoch=40
+						start_from_epoch=15
 						)
 
 	cb_list = [tensorboard_callback,
