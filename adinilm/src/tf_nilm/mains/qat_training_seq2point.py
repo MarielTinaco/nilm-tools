@@ -145,14 +145,20 @@ def run_main():
 		  callbacks=cb_list,
 		  validation_data=val_data)
 
-	model.export(str(logdir_ / "test"), "tf_saved_model")
-	
 	converter = tf.lite.TFLiteConverter.from_keras_model(model)
 	converter.optimizations = [tf.lite.Optimize.DEFAULT]
-	tflite_model = converter.convert()
-	with open(logdir_ / "model.tflite", "wb") as f:
-		f.write(tflite_model)
+	tflite_model_latest = converter.convert()
+	with open(logdir_ / "model_latest.tflite", "wb") as f:
+		f.write(tflite_model_latest)
 	
-	print("Quantized model in Mb:", os.path.getsize(logdir_ / "model.tflite") / float(2**20))
+	print("Quantized latest model in Mb:", os.path.getsize(logdir_ / "model_latest.tflite") / float(2**20))
+
+	converter = tf.lite.TFLiteConverter(best_checkpoint_path)
+	converter.optimizations = [tf.lite.Optimize.DEFAULT]
+	tflite_model_best = converter.convert()
+	with open(logdir_ / "model_best.tflite", "wb") as f:
+		f.write(tflite_model_best)
+	
+	print("Quantized latest model in Mb:", os.path.getsize(logdir_ / "model_best.tflite") / float(2**20))
 
 	return ret
