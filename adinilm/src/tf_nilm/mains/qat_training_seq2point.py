@@ -147,10 +147,12 @@ def run_main():
 
 	model.export(str(logdir_ / "test"), "tf_saved_model")
 	
-	converter = tf.lite.TFLiteConverter.from_saved_model(str(logdir_ / "test"))
+	converter = tf.lite.TFLiteConverter.from_keras_model(model)
+	converter.optimizations = [tf.lite.Optimize.DEFAULT]
 	tflite_model = converter.convert()
 	with open(logdir_ / "model.tflite", "wb") as f:
 		f.write(tflite_model)
-
+	
+	print("Quantized model in Mb:", os.path.getsize(logdir_ / "model.tflite") / float(2**20))
 
 	return ret
