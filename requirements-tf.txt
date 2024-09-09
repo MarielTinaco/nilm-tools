@@ -3,3 +3,5 @@ tensorboard
 pandas
 pydot
 pytest
+scikit-learn
+tqdm

@@ -51,6 +51,7 @@ def check_processed_files_exist():
 	print(f"Checking processed folder {processed_dest_path.resolve()}")
 	for dir in ["test", "train", "val"]:
 		proc_dir = processed_dest_path / dir
+		proc_dir.mkdir(exist_ok=True)
 		check = check_npy_files(proc_dir)
 
 		if not check:
@@ -100,11 +101,9 @@ def dataset_pipeline():
 		data = formatter(power_series)
 		data_i = mixer(data)
 		data_i_den = quantile_filter(data_i, 10, p=50)
-		data_i_den = minmax_scale(data_i_den, feature_range=(-128, 127))
 		data_i_n = noiser(data_i)
-		data_i_n = minmax_scale(data_i_n, feature_range=(-128, 127))
 		data = filt(data)
-		data_p = np.apply_along_axis(norm, 0, data)
+		data_p = data
 		data = data.T
 		data_s = binarizer(data)
 		data_s = data_s.T
@@ -138,13 +137,26 @@ def run_main():
 	if not check_processed_files_exist():
 		dataset_pipeline()
 
+	def input_transform(data):
+		data = minmax_scale(data, feature_range=(-128, 127))
+		return data
+
+	def label1_transform(data):
+		norm = lambda data : minmax_scale(data, feature_range=(0, 1))
+		data = np.apply_along_axis(norm, 0, data)
+		return data
+
 	train_data = NILMSeq2PointDataset(PROFILE_PATH / "train", seq_len=SEQ_LEN,
 				batch_size=BATCH_SIZE,
-				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
+				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader,
+				input_transform = input_transform,
+				label_transform = [lambda x: x, label1_transform])
 
 	val_data = NILMSeq2PointDataset(PROFILE_PATH / "test", seq_len=SEQ_LEN,
 				batch_size=BATCH_SIZE,
-				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader)
+				sequence_strategy= MultitargetQuantileRegressionSeq2PointDataLoader,
+				input_transform = input_transform,
+				label_transform = [lambda x: x, label1_transform])
 
 	tmp = FILE_PATH.parent.parent / "tmp"
 	tmp.mkdir(exist_ok=True)
