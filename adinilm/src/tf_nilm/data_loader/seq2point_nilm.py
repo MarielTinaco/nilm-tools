@@ -6,14 +6,21 @@ from pathlib import Path
 
 class NILMSeq2PointDataset(tf.keras.utils.Sequence):
 
-        def __init__(self, source, seq_len, sequence_strategy, batch_size=256, denoise=True, **kwargs):
+        def __init__(self, source, seq_len, sequence_strategy, batch_size=256, denoise=True, 
+                     input_transform = None, label_transform = None, **kwargs):
                 super().__init__(**kwargs)
 
                 source = Path(source)
-
+                
                 x = np.load(source / "denoise_inputs.npy" if denoise else "noise_inputs.npy")
                 y = np.load(source / "states.npy")
                 z = np.load(source / "targets.npy")
+
+                if input_transform:
+                        x = input_transform(x)
+                
+                if label_transform:
+                        z = label_transform[1](z)
 
                 inputs = x
                 labels = (y, z)

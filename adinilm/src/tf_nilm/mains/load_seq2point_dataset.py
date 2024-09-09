@@ -57,16 +57,13 @@ def run_main():
                 mixer = lambda data : data.sum(axis=1)
                 noiser = NoisedInput()
                 binarizer = BinaryComparator(np.array(on_power_threshold))
-                norm = lambda data : minmax_scale(data, feature_range=(0, 1))
 
                 data = formatter(power_series)
                 data_i = mixer(data)
                 data_i_den = quantile_filter(data_i, 10, p=50)
-                data_i_den = minmax_scale(data_i_den, feature_range=(-128, 127))
                 data_i_n = noiser(data_i)
-                data_i_n = minmax_scale(data_i_n, feature_range=(-128, 127))
                 data = filt(data)
-                data_p = np.apply_along_axis(norm, 0, data)
+                data_p = data
                 data = data.T
                 data_s = binarizer(data)
                 data_s = data_s.T
