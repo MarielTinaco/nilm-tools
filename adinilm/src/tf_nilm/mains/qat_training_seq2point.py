@@ -167,6 +167,9 @@ def run_main():
 
 	logfile = logdir_ / "train.log"
 
+	if not check_processed_files_exist():
+		dataset_pipeline()
+
 	def input_transform(data):
 		data = minmax_scale(data, feature_range=(-128, 127))
 		return data

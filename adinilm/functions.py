@@ -2,4 +2,3 @@
 from .data_processing.binarization import binarization
 from .data_processing.sequence_scanning import scan_sequences
 from .data_processing.normalize import adaptive_minmax_scaling
-from .augmentation.activation_extension import extend_activations
