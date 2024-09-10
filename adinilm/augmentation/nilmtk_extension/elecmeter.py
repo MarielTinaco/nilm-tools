@@ -1,8 +1,6 @@
 import random
 import numpy as np
 import itertools as it
-import nilmtk
-
 
 from enum import Enum
 from typing import Protocol, Union, Callable
@@ -22,7 +20,7 @@ class ActivationExtension(Protocol):
 
 class ElecmeterActivationRandomizer:
 
-        def __init__(self, data : nilmtk.ElecMeter):
+        def __init__(self, data):
                 self.data = data
 
         def _generator(self, activations, interval_func : Callable):
@@ -47,7 +45,7 @@ class ElecmeterActivationRandomizer:
 
 class ElecmeterActivationAppender:
 
-        def __init__(self, data : nilmtk.ElecMeter):
+        def __init__(self, data):
                 self.data = data
 
         def _generator(self, activations, interval_func : Callable):
@@ -71,7 +69,7 @@ class ElecmeterActivationAppender:
 
 class ElecmeterActivationRightPadder:
 
-        def __init__(self, data : nilmtk.ElecMeter):
+        def __init__(self, data):
                 self.data = data
 
         def extend(self, num_samples = 0, padding_mode : Union[Callable, int, str] = 0, **kwargs) -> np.ndarray:
