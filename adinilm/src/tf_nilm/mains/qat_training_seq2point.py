@@ -130,7 +130,6 @@ def dataset_pipeline():
 		mixer = lambda data : data.sum(axis=1)
 		noiser = NoisedInput()
 		binarizer = BinaryComparator(np.array(on_power_threshold))
-		norm = lambda data : minmax_scale(data, feature_range=(0, 1))
 
 		data = formatter(power_series)
 		data_i = mixer(data)
@@ -143,6 +142,39 @@ def dataset_pipeline():
 		data_s = data_s.T
 
 		prof_handler.write(data_i_den, data_i_n, data_p, data_s, profile=prof, subdir=split_key)
+
+
+def convert_tflite_model(model):
+	"""Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
+
+	"""
+	converter = tf.lite.TFLiteConverter.from_keras_model(model)
+	tflite_model = converter.convert()
+	return tflite_model
+
+def convert_quantized_tflite_model(model, x_train):
+	"""Convert the save TF model to tflite model, then save it as .tflite flatbuffer format
+
+	"""
+	def representative_dataset_gen(num_samples=100):
+		dset = iter(x_train)
+		first_pop = next(dset)
+
+		for idx in range(num_samples):
+			data = first_pop[0][idx,:]
+			data = np.reshape(data, (1, 100, 1))
+			data = tf.cast(data, tf.float32)
+			yield [data]
+
+	converter = tf.lite.TFLiteConverter.from_keras_model(model)
+	converter.optimizations = [tf.lite.Optimize.DEFAULT]
+	converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+	converter.inference_input_type = tf.int8
+	converter.inference_output_type = tf.int8
+	converter.representative_dataset = representative_dataset_gen
+	tflite_model = converter.convert()
+	return tflite_model
+
 
 def run_main():
 
@@ -173,11 +205,11 @@ def run_main():
 		dataset_pipeline()
 
 	def input_transform(data):
-		data = minmax_scale(data, feature_range=(-128, 127))
+		data = minmax_scale(data, feature_range=(0, 1))
 		return data
 
 	def label1_transform(data):
-		norm = lambda data : minmax_scale(data, feature_range=(-128, 127))
+		norm = lambda data : minmax_scale(data, feature_range=(0, 1))
 		data = np.apply_along_axis(norm, 0, data)
 		return data
 
@@ -222,7 +254,7 @@ def run_main():
 									mode=MONITOR_MODE,
 									save_best_only=True,
 									save_weights_only=False,
-									initial_value_threshold=0.41,
+									initial_value_threshold=1.5,
 									verbose=1)
 	last_checkpoint_callback = keras.callbacks.ModelCheckpoint(filepath=str(last_checkpoint_path),
 									save_weights_only=False,
@@ -249,24 +281,30 @@ def run_main():
 		  callbacks=cb_list,
 		  validation_data=val_data)
 
-	converter = tf.lite.TFLiteConverter.from_keras_model(model)
-	converter.optimizations = [tf.lite.Optimize.DEFAULT]
-	tflite_model_latest = converter.convert()
+	tflite_model_latest = convert_tflite_model(model)
 	with open(logdir_ / "model_latest.tflite", "wb") as f:
 		f.write(tflite_model_latest)
 	
-	print("Quantized latest model in Mb:", os.path.getsize(logdir_ / "model_latest.tflite") / float(2**20))
+	quantized_tflite_model_latest = convert_quantized_tflite_model(model, train_data)
+	with open(logdir_ / "tflite_micro_model_latest.tflite", "wb") as f:
+		f.write(quantized_tflite_model_latest)
+
+	print("Quantized latest TFLite model in Mb:", os.path.getsize(logdir_ / "model_latest.tflite") / float(2**20))
+	print("Quantized latest TFLite micro model in Mb:", os.path.getsize(logdir_ / "tflite_micro_model_latest.tflite") / float(2**20))
 
 	with tf.keras.utils.custom_object_scope({'MultiActivationLoss':MultiActivationLoss, 'QuantileLoss':QuantileLoss, 'BaseAccuracy':BaseAccuracy}):
 		with tfmot.quantization.keras.quantize_scope():                                 
 			model = tf.keras.models.load_model(best_checkpoint_path) 
 
-		converter = tf.lite.TFLiteConverter.from_keras_model(model)
-		converter.optimizations = [tf.lite.Optimize.DEFAULT]
-		tflite_model_best = converter.convert()
+		tflite_model_best = convert_tflite_model(model)
 		with open(logdir_ / "model_best.tflite", "wb") as f:
 			f.write(tflite_model_best)
-		
-		print("Quantized latest model in Mb:", os.path.getsize(logdir_ / "model_best.tflite") / float(2**20))
+
+		quantized_tflite_model_best = convert_quantized_tflite_model(model, train_data)
+		with open(logdir_ / "tflite_micro_model_best.tflite", "wb") as f:
+			f.write(quantized_tflite_model_best)
+
+		print("Quantized best model in Mb:", os.path.getsize(logdir_ / "model_best.tflite") / float(2**20))
+		print("Quantized best TFLite micro model in Mb:", os.path.getsize(logdir_ / "tflite_micro_model_best.tflite") / float(2**20))
 
 	return ret

@@ -43,3 +43,4 @@ class NILMSeq2PointDataset(tf.keras.utils.Sequence):
                 batch_label = tf.squeeze(batch_label, axis=2)
 
                 return batch_data, tuple([batch_label[:,0,:], batch_label[:,1,:]])
+        
