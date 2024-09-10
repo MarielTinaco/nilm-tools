@@ -20,4 +20,6 @@ def get_parser():
                             help='dataset profile source path')
         parser.add_argument('--checkpoint', type=str, default=None,
                             help='checkpoint')
+        parser.add_argument('--monitor', type=str, default="val_loss")
+        parser.add_argument('--monitor-mode', type=str, default="min")
         return parser

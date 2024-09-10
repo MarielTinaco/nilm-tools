@@ -154,6 +154,8 @@ def run_main():
 	MODEL = args.model
 	LEARNING_RATE = float(args.learning_rate)
 	WEIGHT_DECAY = float(args.weight_decay)
+	MONITOR = str(args.monitor)
+	MONITOR_MODE = str(args.monitor_mode)
 
 	logdirname = datetime.now().strftime("%Y%m%d-%H%M%S")
 	logdir = LOG_DIR / "tf_nilm"
@@ -212,12 +214,12 @@ def run_main():
 	logger_callback = PyLoggingCallback(filename=logfile, encoding='utf-8', level=logging.INFO)
 	
 	logging.info(f"Profile used: {PROFILE_PATH.resolve()}")
-	lrscheduler_callback = keras.callbacks.ReduceLROnPlateau(monitor = "val_quantize_annotate_53_accuracy",
-								    mode = "max")
+	lrscheduler_callback = keras.callbacks.ReduceLROnPlateau(monitor = MONITOR,
+								    mode = MONITOR_MODE)
 	tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logdir_)
 	best_checkpoint_callback = keras.callbacks.ModelCheckpoint(filepath=str(best_checkpoint_path),
-									monitor='val_quantize_annotate_53_accuracy',
-									mode='max',
+									monitor=MONITOR,
+									mode=MONITOR_MODE,
 									save_best_only=True,
 									save_weights_only=False,
 									initial_value_threshold=0.41,
@@ -225,11 +227,11 @@ def run_main():
 	last_checkpoint_callback = keras.callbacks.ModelCheckpoint(filepath=str(last_checkpoint_path),
 									save_weights_only=False,
 									verbose=1)
-	early_stop_callback = keras.callbacks.EarlyStopping(monitor='val_quantize_annotate_53_accuracy',
+	early_stop_callback = keras.callbacks.EarlyStopping(monitor=MONITOR,
 						min_delta=0.04,
 						patience=5,
 						verbose=0,
-						mode='max',
+						mode=MONITOR_MODE,
 						baseline=None,
 						restore_best_weights=False,
 						start_from_epoch=15
