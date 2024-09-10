@@ -175,7 +175,7 @@ def run_main():
 		return data
 
 	def label1_transform(data):
-		norm = lambda data : minmax_scale(data, feature_range=(0, 1))
+		norm = lambda data : minmax_scale(data, feature_range=(-128, 127))
 		data = np.apply_along_axis(norm, 0, data)
 		return data
 
