@@ -41,7 +41,7 @@ ActivationExtensionRegistry = {
 
 def extend_activations(data, num_full_samples, mode=None, *args, **kwargs):
         
-        if isinstance(data, nilmtk.ElecMeter):
+        if hasattr(data, "power_series_all_data"):
                 assert num_full_samples > len(data.power_series_all_data()), \
                         f"Select num_full_samples value greated than {len(data.power_series_all_data())}"
 
