@@ -32,7 +32,7 @@ def create_resnet_model(input_window_length, dropout=0.2):
     
         init = keras.initializers.HeNormal(seed=None)
 
-        input_layer = keras.layers.Input(shape=(input_window_length,))
+        input_layer = keras.layers.Input(shape=(input_window_length,), name="input")
         input_layer = keras.layers.Reshape((input_window_length,1))(input_layer)
 
         conv1 = keras.layers.Conv1D(filters=32, kernel_size=3, strides=1, padding="causal", activation="relu",
