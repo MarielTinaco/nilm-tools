@@ -233,6 +233,20 @@ def run_main(args):
 			weights,
 			model_name="seq2point_nilm_quant.tflite")
 
+	model = tf.keras.models.load_model(best_checkpoint_path) 
+	run_model = prepare_trained_model(model)
+
+	# Convert and save the model to .tflite
+	tflite_model = convert_tflite_model(run_model)
+	save_tflite_model(tflite_model,
+			weights,
+			model_name="seq2point_nilm_best.tflite")
+
+	quantized_tflite_model = convert_quantized_tflite_model(run_model, train_data)
+	save_tflite_model(quantized_tflite_model,
+			weights,
+			model_name="seq2point_nilm_quant_best.tflite")
+
 	return {
 		'logs' : logdirname
 	}
