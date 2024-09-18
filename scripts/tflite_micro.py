@@ -4,14 +4,24 @@ import sys, os
 
 sys.path.append("..")
 
-from adinilm.src.tf_nilm.mains.tflite_micro_train import run_main
 from adinilm.src.tf_nilm import parse_cmd
-
 
 def main():
 
-	args = parse_cmd.get_parser().parse_args()
-	ret = run_main(args)
+	ret = None
+	parser = parse_cmd.get_parser()
+	mode_args = parser.add_argument_group("Run mode Arguments")
+	mode_args.add_argument("--evaluate", action="store_true", default=False, help="Run in evaluation mode")
+	
+	args = parser.parse_args()
+
+	if bool(args.evaluate):
+		from adinilm.src.tf_nilm.mains.tflite_micro_eval import run_main
+		run_main(args)
+
+	else:
+		from adinilm.src.tf_nilm.mains.tflite_micro_train import run_main
+		ret = run_main(args)
 
 	return ret
 
