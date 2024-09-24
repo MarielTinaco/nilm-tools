@@ -89,7 +89,7 @@ def convert_quantized_tflite_model(model, x_train):
 	converter.inference_input_type = tf.int8
 	converter.inference_output_type = tf.int8
 	converter.representative_dataset = representative_dataset_gen
-	converter._experimental_disable_per_channel_quuantization_for_dense_layers=True
+	# converter._experimental_disable_per_channel_quuantization_for_dense_layers=True
 	tflite_model = converter.convert()
 	return tflite_model
 
@@ -157,7 +157,7 @@ def run_main(args):
 		return data
 
 	def label1_transform(data):
-		norm = lambda data : minmax_scale(data, feature_range=(0, 1))
+		norm = lambda data : minmax_scale(data, feature_range=(-128, 127))
 		data = np.apply_along_axis(norm, 0, data)
 		return data
 
