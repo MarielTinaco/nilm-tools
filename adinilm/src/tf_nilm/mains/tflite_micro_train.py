@@ -17,6 +17,7 @@ from sklearn.preprocessing import minmax_scale
 
 from ..models import simple_seq2point
 from ..metrics.baseaccuracy import BaseAccuracy
+from ..metrics.eac import EAC
 from ..losses.quantileloss import QuantileLoss
 from ..losses.multiactivationloss import MultiActivationLoss 
 from ..callbacks.loggingcallback import PyLoggingCallback
@@ -42,7 +43,7 @@ def create_model(modeltype : Union[str, Seq2PointModel], seq_len, optimizer):
 
 	model.compile(optimizer=optimizer,
 	       		  loss={'y1_output' : MultiActivationLoss(from_logits=False), 'y2_output' : QuantileLoss()},
-				  metrics={'y1_output' : BaseAccuracy()})
+				  metrics={'y1_output' : BaseAccuracy(), 'y2_output' : EAC(name="accuracy")})
 	
 	model.summary()
 	return model
@@ -200,13 +201,13 @@ def run_main(args):
 									save_weights_only=False,
 									verbose=1)
 	early_stop_callback = tf.keras.callbacks.EarlyStopping(monitor=MONITOR,
-						min_delta=0.04,
+						min_delta=0.5,
 						patience=5,
 						verbose=0,
 						mode=MONITOR_MODE,
 						baseline=None,
 						restore_best_weights=False,
-						start_from_epoch=15
+						start_from_epoch=40
 						)
 
 	cb_list = [tensorboard_callback,
