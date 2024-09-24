@@ -12,6 +12,7 @@ def main():
 	parser = parse_cmd.get_parser()
 	mode_args = parser.add_argument_group("Run mode Arguments")
 	mode_args.add_argument("--evaluate", action="store_true", default=False, help="Run in evaluation mode")
+	mode_args.add_argument("--inference", action="store_true", default=False, help="Run in evaluation mode")
 	
 	args = parser.parse_args()
 
