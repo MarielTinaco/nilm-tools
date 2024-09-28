@@ -195,7 +195,7 @@ def run_main(args):
 									mode=MONITOR_MODE,
 									save_best_only=True,
 									save_weights_only=False,
-									initial_value_threshold=1.5,
+									initial_value_threshold=1.6,
 									verbose=1)
 	last_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(filepath=str(last_checkpoint_path),
 									save_weights_only=False,
